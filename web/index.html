@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Proyecto clase IA – Orientación vocacional</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    :root{
+      --bg:#eef4ff;
+      --card:#ffffff;
+      --primary:#2f6fed;
+      --primary-dark:#1e55c9;
+      --line:#dbe7ff;
+      --text:#0b1a33;
+      --muted:#4b5a77;
+      --radius:16px;
+      --shadow:0 10px 26px rgba(30,70,160,.12);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:linear-gradient(180deg,#f4f8ff,#eaf1ff);
+      color:var(--text);
+    }
+
+    .wrap{
+      max-width:980px;
+      margin:auto;
+      padding:28px;
+    }
+
+    h1{
+      margin:0 0 6px;
+      font-size:30px;
+      color:var(--primary-dark);
+    }
+
+    h2{
+      margin:0 0 10px;
+      font-size:22px;
+      color:var(--primary);
+    }
+
+    p.desc{
+      margin:0 0 22px;
+      color:var(--muted);
+    }
+
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:20px 22px;
+      box-shadow:var(--shadow);
+      margin-bottom:18px;
+    }
+
+    .question{
+      margin-bottom:18px;
+      padding:16px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#f9fbff;
+    }
+
+    .question h3{
+      margin:0 0 10px;
+      font-size:16px;
+    }
+
+    .options{
+      display:flex;
+      flex-wrap:wrap;
+      gap:14px;
+    }
+
+    label.option{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      background:#ffffff;
+      padding:8px 12px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      cursor:pointer;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea{
+      width:100%;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      font-size:14px;
+      outline:none;
+    }
+
+    textarea{resize:vertical}
+
+    .btn{
+      background:var(--primary);
+      color:#fff;
+      border:0;
+      border-radius:14px;
+      padding:14px 22px;
+      font-size:16px;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .btn:hover{background:var(--primary-dark)}
+
+    pre{
+      background:#0b1a33;
+      color:#e6eeff;
+      padding:16px;
+      border-radius:14px;
+      overflow:auto;
+      max-height:420px;
+    }
+
+    footer{
+      text-align:center;
+      color:var(--muted);
+      margin-top:30px;
+      font-size:13px;
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="card">
+    <h1>Proyecto clase IA</h1>
+    <p class="desc">
+      Cuestionario vocacional.  
+      (Por ahora solo genera el JSON de respuestas – luego se conectará con la IA).
+    </p>
+  </div>
+
+  <form id="form">
+
+    <!-- 1. DATOS GENERALES -->
+    <div class="card">
+      <h2>1. Datos generales</h2>
+
+      <div class="question">
+        <h3>Edad</h3>
+        <input type="number" name="edad" min="10" max="100" required>
+      </div>
+
+      <div class="question">
+        <h3>Nivel educativo actual</h3>
+        <div class="options">
+          <label class="option"><input type="radio" name="nivel" value="Secundaria incompleta" required> Secundaria incompleta</label>
+          <label class="option"><input type="radio" name="nivel" value="Secundaria completa"> Secundaria completa</label>
+          <label class="option"><input type="radio" name="nivel" value="Terciario/Universidad en curso"> Terciario / Universidad en curso</label>
+          <label class="option"><input type="radio" name="nivel" value="Terciario/Universidad completa"> Terciario / Universidad completa</label>
+        </div>
+      </div>
+
+      <div class="question">
+        <h3>País / región</h3>
+        <input type="text" name="region" required>
+      </div>
+
+      <div class="question">
+        <h3>¿Estudias actualmente?</h3>
+        <div class="options">
+          <label class="option"><input type="radio" name="estudia" value="Sí" required> Sí</label>
+          <label class="option"><input type="radio" name="estudia" value="No"> No</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. INTERESES -->
+    <div class="card">
+      <h2>2. Intereses principales</h2>
+
+      <div class="question">
+        <h3>¿Qué actividades disfrutas más? (máx. 3)</h3>
+        <div class="options">
+          <label class="option"><input type="checkbox" name="actividades" value="Resolver problemas / lógica"> Resolver problemas / lógica</label>
+          <label class="option"><input type="checkbox" name="actividades" value="Crear cosas"> Crear cosas</label>
+          <label class="option"><input type="checkbox" name="actividades" value="Ayudar a personas"> Ayudar a personas</label>
+          <label class="option"><input type="checkbox" name="actividades" value="Investigar / aprender"> Investigar / aprender</label>
+          <label class="option"><input type="checkbox" name="actividades" value="Tecnología"> Trabajar con tecnología</label>
+          <label class="option"><input type="checkbox" name="actividades" value="Actividad física / manual"> Actividad física / manual</label>
+          <label class="option"><input type="checkbox" name="actividades" value="Liderar / organizar"> Liderar / organizar</label>
+          <label class="option"><input type="checkbox" name="actividades" value="Vender / negociar"> Vender / negociar</label>
+        </div>
+      </div>
+
+      <div class="question">
+        <h3>¿Qué temas te interesan más?</h3>
+        <textarea name="temas_interes" rows="3"></textarea>
+      </div>
+    </div>
+
+    <!-- 3. HABILIDADES -->
+    <div class="card">
+      <h2>3. Habilidades percibidas</h2>
+
+      <div class="question">
+        <h3>¿En qué sientes que eres bueno/a?</h3>
+        <textarea name="habilidades" rows="3"></textarea>
+      </div>
+
+      <div class="question">
+        <h3>¿Qué tipo de tareas prefieres?</h3>
+        <div class="options">
+          <label class="option"><input type="checkbox" name="tareas" value="Prácticas"> Prácticas</label>
+          <label class="option"><input type="checkbox" name="tareas" value="Teóricas"> Teóricas</label>
+          <label class="option"><input type="checkbox" name="tareas" value="Creativas"> Creativas</label>
+          <label class="option"><input type="checkbox" name="tareas" value="Analíticas"> Analíticas</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. PERSONALIDAD -->
+    <div class="card">
+      <h2>4. Personalidad y estilo de trabajo</h2>
+
+      <div class="question">
+        <h3>¿Prefieres trabajar…?</h3>
+        <div class="options">
+          <label class="option"><input type="radio" name="trabajo" value="Solo" required> Solo/a</label>
+          <label class="option"><input type="radio" name="trabajo" value="Equipo"> En equipo</label>
+          <label class="option"><input type="radio" name="trabajo" value="Indistinto"> Indistinto</label>
+        </div>
+      </div>
+
+      <div class="question">
+        <h3>¿Cómo te sientes frente a los desafíos?</h3>
+        <div class="options">
+          <label class="option"><input type="radio" name="desafios" value="Me motivan" required> Me motivan</label>
+          <label class="option"><input type="radio" name="desafios" value="Me generan ansiedad"> Me generan ansiedad</label>
+          <label class="option"><input type="radio" name="desafios" value="Depende"> Depende de la situación</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. VALORES -->
+    <div class="card">
+      <h2>5. Valores y expectativas laborales</h2>
+
+      <div class="question">
+        <h3>¿Qué valoras más en un trabajo? (máx. 2)</h3>
+        <div class="options">
+          <label class="option"><input type="checkbox" name="valores" value="Buen salario"> Buen salario</label>
+          <label class="option"><input type="checkbox" name="valores" value="Estabilidad"> Estabilidad</label>
+          <label class="option"><input type="checkbox" name="valores" value="Impacto social"> Impacto social</label>
+          <label class="option"><input type="checkbox" name="valores" value="Creatividad"> Creatividad</label>
+          <label class="option"><input type="checkbox" name="valores" value="Crecimiento profesional"> Crecimiento profesional</label>
+          <label class="option"><input type="checkbox" name="valores" value="Flexibilidad"> Flexibilidad</label>
+        </div>
+      </div>
+
+      <div class="question">
+        <h3>¿Cómo sería tu día laboral ideal?</h3>
+        <textarea name="dia_ideal" rows="3"></textarea>
+      </div>
+    </div>
+
+    <!-- 6. RESTRICCIONES -->
+    <div class="card">
+      <h2>6. Restricciones y condiciones</h2>
+
+      <div class="question">
+        <h3>¿Tienes alguna limitación importante?</h3>
+        <div class="options">
+          <label class="option"><input type="checkbox" name="limitaciones" value="Económica"> Económica</label>
+          <label class="option"><input type="checkbox" name="limitaciones" value="Tiempo"> Tiempo</label>
+          <label class="option"><input type="checkbox" name="limitaciones" value="Ubicación"> Ubicación</label>
+          <label class="option"><input type="checkbox" name="limitaciones" value="Ninguna"> Ninguna</label>
+        </div>
+      </div>
+
+      <div class="question">
+        <h3>¿Cuántos años estarías dispuesto/a a estudiar?</h3>
+        <div class="options">
+          <label class="option"><input type="radio" name="anios" value="Menos de 1" required> Menos de 1</label>
+          <label class="option"><input type="radio" name="anios" value="1–3"> 1–3</label>
+          <label class="option"><input type="radio" name="anios" value="3–5"> 3–5</label>
+          <label class="option"><input type="radio" name="anios" value="Más de 5"> Más de 5</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. DUDAS -->
+    <div class="card">
+      <h2>7. Situación actual y dudas</h2>
+
+      <div class="question">
+        <h3>¿Qué opciones estás considerando hoy?</h3>
+        <textarea name="opciones_actuales" rows="3"></textarea>
+      </div>
+
+      <div class="question">
+        <h3>¿Qué te gustaría que la IA te ayude a decidir?</h3>
+        <textarea name="ayuda_ia" rows="3"></textarea>
+      </div>
+    </div>
+
+    <!-- 8. PROMPT -->
+    <div class="card">
+      <h2>8. Tipo de respuesta esperada de la IA</h2>
+
+      <div class="question">
+        <div class="options">
+          <label class="option"><input type="radio" name="tipo_respuesta" value="Sugerencias de carreras" required> Sugerencias de carreras</label>
+          <label class="option"><input type="radio" name="tipo_respuesta" value="Opciones laborales"> Opciones laborales</label>
+          <label class="option"><input type="radio" name="tipo_respuesta" value="Plan de estudio"> Plan de estudio</label>
+          <label class="option"><input type="radio" name="tipo_respuesta" value="Todo lo anterior"> Todo lo anterior</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <button class="btn" type="submit">Generar JSON de respuestas</button>
+    </div>
+
+  </form>
+
+  <div class="card">
+    <h2>JSON generado</h2>
+    <pre id="output">{ }</pre>
+  </div>
+
+  <footer>
+    Proyecto clase IA · Frontend listo · Backend + Bedrock se conecta después 🚀
+  </footer>
+
+</div>
+
+<script>
+  document.getElementById("form").addEventListener("submit", e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const data = {};
+
+    for (const [k, v] of fd.entries()) {
+      if (data[k]) {
+        if (!Array.isArray(data[k])) data[k] = [data[k]];
+        data[k].push(v);
+      } else {
+        data[k] = v;
+      }
+    }
+
+    document.getElementById("output").textContent =
+      JSON.stringify(data, null, 2);
+  });
+</script>
+</body>
+</html>

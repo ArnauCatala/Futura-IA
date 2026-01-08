@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>Proyecto clase IA – Orientación vocacional</title>
+  <title>Proyecto clase IA – Orientación vocacional (FP CV)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
@@ -16,8 +16,8 @@
       --muted:#4b5a77;
       --radius:16px;
       --shadow:0 10px 26px rgba(30,70,160,.12);
+      --chip:#eff5ff;
     }
-
     *{box-sizing:border-box}
     body{
       margin:0;
@@ -25,38 +25,21 @@
       background:linear-gradient(180deg,#f4f8ff,#eaf1ff);
       color:var(--text);
     }
-
     .wrap{
-      max-width:980px;
+      max-width:1000px;
       margin:auto;
       padding:28px;
     }
-
-    h1{
-      margin:0 0 6px;
-      font-size:30px;
-      color:var(--primary-dark);
-    }
-
-    h2{
-      margin:0 0 10px;
-      font-size:22px;
-      color:var(--primary);
-    }
-
-    p.desc{
-      margin:0 0 22px;
-      color:var(--muted);
-    }
-
+    h1{margin:0 0 6px;font-size:30px;color:var(--primary-dark)}
+    h2{margin:0 0 12px;font-size:22px;color:var(--primary)}
+    p.desc{margin:0 0 22px;color:var(--muted)}
     .card{
       background:var(--card);
       border-radius:var(--radius);
-      padding:20px 22px;
+      padding:22px;
       box-shadow:var(--shadow);
-      margin-bottom:18px;
+      margin-bottom:20px;
     }
-
     .question{
       margin-bottom:18px;
       padding:16px;
@@ -64,71 +47,70 @@
       border-radius:14px;
       background:#f9fbff;
     }
-
-    .question h3{
-      margin:0 0 10px;
-      font-size:16px;
+    .question h3{margin:0 0 10px;font-size:16px}
+    .options{display:flex;flex-wrap:wrap;gap:14px}
+    label.option{
+      display:flex;align-items:center;gap:8px;
+      background:#fff;padding:8px 12px;border-radius:10px;border:1px solid var(--line);
+      cursor:pointer;
     }
-
-    .options{
-      display:flex;
-      flex-wrap:wrap;
+    input[type="text"], input[type="number"], textarea{
+      width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);
+      font-size:14px;outline:none;
+    }
+    textarea{resize:vertical}
+    .btn{
+      background:var(--primary);color:#fff;border:0;border-radius:14px;
+      padding:14px 24px;font-size:16px;font-weight:700;cursor:pointer;
+    }
+    .btn:hover{background:var(--primary-dark)}
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
       gap:14px;
     }
-
-    label.option{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      background:#ffffff;
-      padding:8px 12px;
-      border-radius:10px;
-      border:1px solid var(--line);
-      cursor:pointer;
+    @media (max-width: 920px){
+      .grid{grid-template-columns: 1fr;}
     }
-
-    input[type="text"],
-    input[type="number"],
-    select,
-    textarea{
-      width:100%;
-      padding:10px 12px;
-      border-radius:10px;
+    .rec{
       border:1px solid var(--line);
-      font-size:14px;
-      outline:none;
-    }
-
-    textarea{resize:vertical}
-
-    .btn{
-      background:var(--primary);
-      color:#fff;
-      border:0;
       border-radius:14px;
-      padding:14px 22px;
-      font-size:16px;
-      font-weight:700;
-      cursor:pointer;
-    }
-
-    .btn:hover{background:var(--primary-dark)}
-
-    pre{
-      background:#0b1a33;
-      color:#e6eeff;
       padding:16px;
-      border-radius:14px;
-      overflow:auto;
-      max-height:420px;
+      background:#fbfdff;
     }
-
-    footer{
-      text-align:center;
+    .rec h3{
+      margin:0 0 8px;
+      font-size:16px;
+      color:var(--primary-dark);
+    }
+    .meta{
+      display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;
+    }
+    .chip{
+      background:var(--chip);
+      border:1px solid var(--line);
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
       color:var(--muted);
-      margin-top:30px;
-      font-size:13px;
+      font-weight:600;
     }
+    .motivo{
+      margin:0;
+      color:#22304a;
+      line-height:1.35;
+      font-size:14px;
+    }
+    .score{
+      margin-top:10px;
+      font-weight:800;
+      color:var(--primary-dark);
+    }
+    pre{
+      background:#0b1a33;color:#e6eeff;
+      padding:18px;border-radius:14px;overflow:auto;max-height:420px;font-size:14px;
+    }
+    footer{text-align:center;color:var(--muted);margin-top:30px;font-size:13px}
   </style>
 </head>
 
@@ -138,14 +120,13 @@
   <div class="card">
     <h1>Proyecto clase IA</h1>
     <p class="desc">
-      Cuestionario vocacional.  
-      (Por ahora solo genera el JSON de respuestas – luego se conectará con la IA).
+      El formulario envía las respuestas al backend y obtiene <b>3 ciclos de FP de la Comunidad Valenciana</b>.
+      Verás el JSON y el TOP 3 en formato bonito.
     </p>
   </div>
 
   <form id="form">
 
-    <!-- 1. DATOS GENERALES -->
     <div class="card">
       <h2>1. Datos generales</h2>
 
@@ -178,7 +159,6 @@
       </div>
     </div>
 
-    <!-- 2. INTERESES -->
     <div class="card">
       <h2>2. Intereses principales</h2>
 
@@ -202,7 +182,6 @@
       </div>
     </div>
 
-    <!-- 3. HABILIDADES -->
     <div class="card">
       <h2>3. Habilidades percibidas</h2>
 
@@ -222,7 +201,6 @@
       </div>
     </div>
 
-    <!-- 4. PERSONALIDAD -->
     <div class="card">
       <h2>4. Personalidad y estilo de trabajo</h2>
 
@@ -245,7 +223,6 @@
       </div>
     </div>
 
-    <!-- 5. VALORES -->
     <div class="card">
       <h2>5. Valores y expectativas laborales</h2>
 
@@ -267,95 +244,120 @@
       </div>
     </div>
 
-    <!-- 6. RESTRICCIONES -->
     <div class="card">
-      <h2>6. Restricciones y condiciones</h2>
-
-      <div class="question">
-        <h3>¿Tienes alguna limitación importante?</h3>
-        <div class="options">
-          <label class="option"><input type="checkbox" name="limitaciones" value="Económica"> Económica</label>
-          <label class="option"><input type="checkbox" name="limitaciones" value="Tiempo"> Tiempo</label>
-          <label class="option"><input type="checkbox" name="limitaciones" value="Ubicación"> Ubicación</label>
-          <label class="option"><input type="checkbox" name="limitaciones" value="Ninguna"> Ninguna</label>
-        </div>
-      </div>
-
-      <div class="question">
-        <h3>¿Cuántos años estarías dispuesto/a a estudiar?</h3>
-        <div class="options">
-          <label class="option"><input type="radio" name="anios" value="Menos de 1" required> Menos de 1</label>
-          <label class="option"><input type="radio" name="anios" value="1–3"> 1–3</label>
-          <label class="option"><input type="radio" name="anios" value="3–5"> 3–5</label>
-          <label class="option"><input type="radio" name="anios" value="Más de 5"> Más de 5</label>
-        </div>
-      </div>
+      <button class="btn" type="submit">Obtener 3 ciclos recomendados</button>
     </div>
-
-    <!-- 7. DUDAS -->
-    <div class="card">
-      <h2>7. Situación actual y dudas</h2>
-
-      <div class="question">
-        <h3>¿Qué opciones estás considerando hoy?</h3>
-        <textarea name="opciones_actuales" rows="3"></textarea>
-      </div>
-
-      <div class="question">
-        <h3>¿Qué te gustaría que la IA te ayude a decidir?</h3>
-        <textarea name="ayuda_ia" rows="3"></textarea>
-      </div>
-    </div>
-
-    <!-- 8. PROMPT -->
-    <div class="card">
-      <h2>8. Tipo de respuesta esperada de la IA</h2>
-
-      <div class="question">
-        <div class="options">
-          <label class="option"><input type="radio" name="tipo_respuesta" value="Sugerencias de carreras" required> Sugerencias de carreras</label>
-          <label class="option"><input type="radio" name="tipo_respuesta" value="Opciones laborales"> Opciones laborales</label>
-          <label class="option"><input type="radio" name="tipo_respuesta" value="Plan de estudio"> Plan de estudio</label>
-          <label class="option"><input type="radio" name="tipo_respuesta" value="Todo lo anterior"> Todo lo anterior</label>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <button class="btn" type="submit">Generar JSON de respuestas</button>
-    </div>
-
   </form>
 
   <div class="card">
-    <h2>JSON generado</h2>
+    <h2>TOP 3 recomendaciones</h2>
+    <div id="cards" class="grid">
+      <div class="rec">Rellena el formulario y pulsa el botón 🙂</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>JSON devuelto por la IA</h2>
     <pre id="output">{ }</pre>
   </div>
 
   <footer>
-    Proyecto clase IA · Frontend listo · Backend + Bedrock se conecta después 🚀
+    Proyecto clase IA · Resultado final: 3 ciclos FP Comunidad Valenciana ✅
   </footer>
 
 </div>
 
 <script>
-  document.getElementById("form").addEventListener("submit", e => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    const data = {};
+function formToJSON(form) {
+  const fd = new FormData(form);
+  const data = {};
+  for (const [k, v] of fd.entries()) {
+    if (data[k] !== undefined) {
+      if (!Array.isArray(data[k])) data[k] = [data[k]];
+      data[k].push(v);
+    } else {
+      data[k] = v;
+    }
+  }
+  return data;
+}
 
-    for (const [k, v] of fd.entries()) {
-      if (data[k]) {
-        if (!Array.isArray(data[k])) data[k] = [data[k]];
-        data[k].push(v);
-      } else {
-        data[k] = v;
-      }
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function renderTop3(recs){
+  const cards = document.getElementById("cards");
+  if (!Array.isArray(recs) || recs.length === 0){
+    cards.innerHTML = `<div class="rec">No se recibieron recomendaciones.</div>`;
+    return;
+  }
+
+  cards.innerHTML = recs.slice(0,3).map((r, idx) => {
+    const ciclo = escapeHtml(r.ciclo);
+    const grado = escapeHtml(r.grado);
+    const familia = escapeHtml(r.familia_profesional);
+    const motivo = escapeHtml(r.motivo);
+    const encaje = Number.isFinite(r.encaje) ? r.encaje : parseInt(r.encaje || "0", 10) || 0;
+
+    return `
+      <div class="rec">
+        <h3>${idx+1}. ${ciclo}</h3>
+        <div class="meta">
+          <span class="chip">${grado}</span>
+          <span class="chip">${familia}</span>
+        </div>
+        <p class="motivo">${motivo}</p>
+        <div class="score">Encaje: ${encaje}/100</div>
+      </div>
+    `;
+  }).join("");
+}
+
+document.getElementById("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const out = document.getElementById("output");
+  out.textContent = "Consultando a la IA (Nova Pro)...";
+
+  const payload = formToJSON(e.target);
+
+  if (Array.isArray(payload.actividades) && payload.actividades.length > 3) {
+    out.textContent = "Error: selecciona como máximo 3 actividades.";
+    return;
+  }
+  if (Array.isArray(payload.valores) && payload.valores.length > 2) {
+    out.textContent = "Error: selecciona como máximo 2 valores.";
+    return;
+  }
+
+  try {
+    const res = await fetch("http://127.0.0.1:8000/api/orientacion", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload)
+    });
+
+    const json = await res.json();
+    out.textContent = JSON.stringify(json, null, 2);
+
+    if (json.ok && json.data && Array.isArray(json.data.recomendaciones)) {
+      renderTop3(json.data.recomendaciones);
+    } else {
+      renderTop3([]);
     }
 
-    document.getElementById("output").textContent =
-      JSON.stringify(data, null, 2);
-  });
+  } catch (err) {
+    out.textContent = "Error al conectar con el backend: " + err;
+    renderTop3([]);
+  }
+});
 </script>
+
 </body>
 </html>

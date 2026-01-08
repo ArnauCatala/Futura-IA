@@ -1,0 +1,195 @@
+import json
+import os
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import boto3
+from dotenv import load_dotenv
+
+# ---------------------------
+# Config
+# ---------------------------
+load_dotenv()
+
+AWS_REGION = os.getenv("AWS_REGION", "us-east-1")  # Virginia
+MODEL_ID = os.getenv("BEDROCK_MODEL_ID", "amazon.nova-pro-v1:0")
+
+app = Flask(__name__)
+
+# CORS: para desarrollo en local
+# - Permite llamadas desde tu web en http://localhost:8080
+# - y también desde http://127.0.0.1:8080
+CORS(
+    app,
+    resources={
+        r"/api/*": {"origins": ["http://localhost:8080", "http://127.0.0.1:8080", "*"]},
+        r"/health": {"origins": ["http://localhost:8080", "http://127.0.0.1:8080", "*"]},
+        r"/": {"origins": ["*"]},
+    },
+)
+
+# Cliente Bedrock Runtime
+bedrock = boto3.client("bedrock-runtime", region_name=AWS_REGION)
+
+
+# ---------------------------
+# Helpers
+# ---------------------------
+def build_prompt(respuestas: dict) -> str:
+    """
+    Prompt para orientación vocacional.
+    Pedimos salida JSON estricta para facilitar el postprocesado.
+    """
+    respuestas_json = json.dumps(respuestas, ensure_ascii=False, indent=2)
+
+    return f"""
+Eres un orientador vocacional y académico.
+Tu objetivo: analizar respuestas de un cuestionario y devolver una recomendación realista.
+
+IMPORTANTE:
+- Devuelve SIEMPRE y SOLO un JSON válido.
+- No incluyas markdown, ni texto fuera del JSON.
+- Máximo 5 opciones recomendadas.
+- Sé breve y claro.
+
+Formato EXACTO:
+{{
+  "perfil_vocacional": "Resumen de 3-6 líneas",
+  "opciones": [
+    {{
+      "nombre": "Opción / ciclo / itinerario",
+      "motivo": "2-3 frases",
+      "encaje": 0-100
+    }}
+  ],
+  "recomendacion_educativa": "Qué estudiar y por qué (breve)",
+  "proximos_pasos": ["Paso 1", "Paso 2", "Paso 3"],
+  "avisos": ["Si falta información o hay contradicciones, indícalo aquí"]
+}}
+
+Respuestas del alumno (JSON):
+{respuestas_json}
+""".strip()
+
+
+def invoke_nova(prompt: str) -> str:
+    """
+    Amazon Nova (modelo chat) requiere 'messages'.
+    """
+    body = {
+        "messages": [
+            {
+                "role": "user",
+                "content": [{"text": prompt}]
+            }
+        ],
+        "inferenceConfig": {
+            "maxTokens": 900,
+            "temperature": 0.4,
+            "topP": 0.9
+        }
+    }
+
+    resp = bedrock.invoke_model(
+        modelId=MODEL_ID,
+        contentType="application/json",
+        accept="application/json",
+        body=json.dumps(body)
+    )
+
+    raw = resp["body"].read().decode("utf-8")
+    data = json.loads(raw)
+
+    # Formato típico Nova:
+    # data["output"]["message"]["content"][0]["text"]
+    try:
+        return data["output"]["message"]["content"][0]["text"]
+    except Exception:
+        # Si el formato cambia, devolvemos todo para depurar
+        return json.dumps(data, ensure_ascii=False, indent=2)
+
+
+def try_parse_json(text: str):
+    """
+    Intenta parsear JSON puro.
+    Si Nova devuelve algo con texto extra, intentamos rescatar el primer bloque JSON.
+    """
+    # 1) Intento directo
+    try:
+        return json.loads(text), None
+    except Exception:
+        pass
+
+    # 2) Intento "rescate": buscar el primer { ... } completo
+    # (simple, suficiente para casos típicos donde mete una frase antes/después)
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        candidate = text[start:end + 1]
+        try:
+            return json.loads(candidate), None
+        except Exception as e:
+            return None, f"No se pudo parsear JSON rescatado: {e}"
+
+    return None, "No se encontró un bloque JSON en la respuesta."
+
+
+# ---------------------------
+# Routes
+# ---------------------------
+@app.get("/")
+def index():
+    return jsonify({
+        "mensaje": "Backend activo (Bedrock Nova).",
+        "endpoints": ["/health", "/api/orientacion"]
+    })
+
+
+@app.get("/health")
+def health():
+    return jsonify({
+        "ok": True,
+        "region": AWS_REGION,
+        "modelId": MODEL_ID
+    })
+
+
+@app.post("/api/orientacion")
+def orientacion():
+    """
+    Recibe JSON del frontend y llama a Bedrock Nova.
+    """
+    respuestas = request.get_json(silent=True)
+
+    if not respuestas or not isinstance(respuestas, dict):
+        return jsonify({
+            "ok": False,
+            "error": "No llegó JSON válido. Asegúrate de enviar Content-Type: application/json"
+        }), 400
+
+    prompt = build_prompt(respuestas)
+
+    try:
+        output_text = invoke_nova(prompt)
+
+        parsed, parse_error = try_parse_json(output_text)
+        if parsed is not None:
+            return jsonify({"ok": True, "data": parsed}), 200
+
+        # Si no se puede parsear, devolvemos crudo para ver qué devolvió Nova
+        return jsonify({
+            "ok": False,
+            "error": "Nova no devolvió JSON puro.",
+            "detalle": parse_error,
+            "raw": output_text
+        }), 200
+
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+# ---------------------------
+# Main
+# ---------------------------
+if __name__ == "__main__":
+    # IMPORTANTE: deja este puerto en 8000 para que coincida con tu index.html
+    app.run(host="0.0.0.0", port=8000, debug=True)

@@ -1,6 +1,6 @@
 import json
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from dotenv import load_dotenv
 import boto3
 
@@ -9,24 +9,24 @@ load_dotenv()
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 MODEL_ID = os.getenv("BEDROCK_MODEL_ID", "amazon.nova-pro-v1:0")
 
-app = Flask(__name__)
+# --- Configuración Flask ---
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+WEB_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "web"))
 
+app = Flask(
+    __name__,
+    static_folder=WEB_DIR,
+    static_url_path=""
+)
+
+# --- Cliente Bedrock ---
 bedrock = boto3.client("bedrock-runtime", region_name=AWS_REGION)
 
+# --- Funciones ---
 def build_prompt(respuestas: dict) -> str:
-    """
-    Prompt para que Bedrock devuelva un JSON útil y limpio.
-    """
+    """Prompt para que Bedrock devuelva un JSON limpio."""
     return f"""
-Eres un Chatbot de Orientación Laboral, que apoye la orientación académica y laboral del alumnado adolescente, facilitando la toma de decisiones informadas sobre su futuro formativo y profesional mediante itinerarios personalizados, interacción conversacional y análisis de intereses y competencias. 
-Objetivos a cumplir:
-Interactuar de forma natural con el alumnado, recogiendo información sobre intereses, habilidades, preferencias y expectativas profesionales.
-Analizar las respuestas del alumnado y generar recomendaciones personalizadas de itinerarios formativos y salidas profesionales, evitando enfoques deterministas.
-Fomentar el autoconocimiento y la reflexión vocacional, ayudando al alumnado a identificar sus fortalezas, motivaciones y áreas de interés mediante preguntas guiadas y dinámicas interactivas.
-Generar informes automáticos de orientación adaptados al lenguaje del alumnado y del profesorado, facilitando el seguimiento tutorial y la toma de decisiones pedagógicas.
-
-Recoger evidencias del proceso de orientación, permitiendo analizar tendencias, dudas frecuentes y necesidades formativas de manera agregada.(sin texto extra, sin markdown).
-
+Eres un Chatbot de Orientación Laboral...
 Estructura EXACTA:
 {{
   "perfil_vocacional": "Resumen de 3-5 líneas",
@@ -64,23 +64,20 @@ def invoke_titan(prompt: str) -> str:
 
     raw = resp["body"].read().decode("utf-8")
     data = json.loads(raw)
-
-    # Titan devuelve results[0].outputText
     return data["results"][0]["outputText"]
 
+# --- Rutas Frontend ---
+@app.route("/")
+def index():
+    return send_from_directory(WEB_DIR, "index.html")
+
+# --- Rutas API ---
 @app.get("/health")
 def health():
-    return jsonify({
-        "ok": True,
-        "region": AWS_REGION,
-        "modelId": MODEL_ID
-    })
+    return jsonify({"ok": True, "region": AWS_REGION, "modelId": MODEL_ID})
 
 @app.post("/api/orientacion")
 def orientacion():
-    """
-    Recibe JSON del frontend y llama a Bedrock.
-    """
     respuestas = request.get_json(silent=True)
     if not respuestas:
         return jsonify({"ok": False, "error": "No llegó JSON válido"}), 400
@@ -89,22 +86,14 @@ def orientacion():
 
     try:
         output_text = invoke_titan(prompt)
-
-        # Intentamos parsear el JSON devuelto por el modelo
         try:
             parsed = json.loads(output_text)
             return jsonify({"ok": True, "data": parsed})
         except json.JSONDecodeError:
-            return jsonify({
-                "ok": False,
-                "error": "El modelo no devolvió JSON puro.",
-                "raw": output_text
-            }), 200
-
+            return jsonify({"ok": False, "error": "El modelo no devolvió JSON puro.", "raw": output_text}), 200
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+# --- Run local ---
 if __name__ == "__main__":
-    # CORS fácil para desarrollo: permite llamadas desde index.html
-    # Flask 3 + navegador: si te da guerra, te lo ajusto
     app.run(host="0.0.0.0", port=8000, debug=True)

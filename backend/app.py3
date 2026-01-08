@@ -26,36 +26,31 @@ bedrock = boto3.client("bedrock-runtime", region_name=AWS_REGION)
 
 def build_prompt(respuestas: dict) -> str:
     """
-    Pedimos EXACTAMENTE 3 ciclos de FP en la Comunidad Valenciana,
-    y para cada uno: trabajos relacionados + rango salarial estimado.
+    Pedimos 3 ciclos de FP de la Comunidad Valenciana.
+    Respuesta: SOLO JSON, exactamente 3 recomendaciones.
     """
     respuestas_json = json.dumps(respuestas, ensure_ascii=False, indent=2)
 
     return f"""
-Eres un orientador académico experto en Formación Profesional (FP) en España.
-Tu tarea: recomendar EXACTAMENTE 3 ciclos formativos de la COMUNIDAD VALENCIANA.
+Eres un orientador académico especializado en Formación Profesional (FP) en España.
+Tienes que recomendar EXACTAMENTE 3 ciclos formativos de la COMUNIDAD VALENCIANA.
 
 REGLAS OBLIGATORIAS:
 - Devuelve SIEMPRE y SOLO un JSON válido.
 - No uses markdown.
 - No escribas texto fuera del JSON.
-- EXACTAMENTE 3 recomendaciones.
-- Deben ser ciclos reales y habituales de FP (CV).
-- Incluye salidas laborales concretas y rangos salariales ORIENTATIVOS (no cifras “oficiales”).
-- Rangos salariales: en euros y preferiblemente ANUAL BRUTO (p. ej. "18.000–24.000 €/año").
-- Añade un campo "nota_salarios" aclarando que son estimaciones.
+- EXACTAMENTE 3 recomendaciones (ni 2 ni 4).
+- Cada recomendación debe ser un ciclo real y típico de FP en la Comunidad Valenciana.
+- Si el perfil no encaja perfecto, igualmente elige los 3 mejores para el alumno según sus respuestas.
 
 FORMATO EXACTO (no añadas campos extra):
 {{
-  "nota_salarios": "Texto breve aclarando que son rangos estimados en España/CV.",
   "recomendaciones": [
     {{
       "ciclo": "Nombre del ciclo",
       "grado": "Medio o Superior",
       "familia_profesional": "Familia profesional",
-      "motivo": "2-3 frases personalizadas",
-      "salidas_laborales": ["Trabajo 1", "Trabajo 2", "Trabajo 3"],
-      "rango_salarial": "18.000–24.000 €/año",
+      "motivo": "2-3 frases claras y personalizadas",
       "encaje": 0-100
     }},
     {{
@@ -63,8 +58,6 @@ FORMATO EXACTO (no añadas campos extra):
       "grado": "...",
       "familia_profesional": "...",
       "motivo": "...",
-      "salidas_laborales": ["...","...","..."],
-      "rango_salarial": "...",
       "encaje": 0-100
     }},
     {{
@@ -72,8 +65,6 @@ FORMATO EXACTO (no añadas campos extra):
       "grado": "...",
       "familia_profesional": "...",
       "motivo": "...",
-      "salidas_laborales": ["...","...","..."],
-      "rango_salarial": "...",
       "encaje": 0-100
     }}
   ]
@@ -90,8 +81,8 @@ def invoke_nova(prompt: str) -> str:
             {"role": "user", "content": [{"text": prompt}]}
         ],
         "inferenceConfig": {
-            "maxTokens": 1100,
-            "temperature": 0.35,
+            "maxTokens": 900,
+            "temperature": 0.4,
             "topP": 0.9
         }
     }
@@ -113,11 +104,13 @@ def invoke_nova(prompt: str) -> str:
 
 
 def try_parse_json(text: str):
+    # Intento directo
     try:
         return json.loads(text), None
     except Exception:
         pass
 
+    # Rescate simple: primer bloque { ... }
     start = text.find("{")
     end = text.rfind("}")
     if start != -1 and end != -1 and end > start:
@@ -130,58 +123,38 @@ def try_parse_json(text: str):
     return None, "No se encontró un bloque JSON en la respuesta."
 
 
-def safe_int(x, default=0):
-    try:
-        return int(x)
-    except Exception:
-        return default
-
-
 def normalize_output(obj: dict) -> dict:
     """
-    Asegura salida FINAL:
-    - 3 recomendaciones
-    - campos limpios
+    Asegura que devolvemos SOLO las 3 recomendaciones finales.
     """
-    nota = str(obj.get("nota_salarios", "")).strip()
-    if not nota:
-        nota = "Rangos salariales orientativos (pueden variar por provincia, experiencia y empresa)."
-
     recs = obj.get("recomendaciones", [])
     if not isinstance(recs, list):
         recs = []
 
+    # Recorta a 3 por seguridad
     recs = recs[:3]
 
+    # Normaliza campos mínimos
     cleaned = []
     for r in recs:
         if not isinstance(r, dict):
             continue
-
-        salidas = r.get("salidas_laborales", [])
-        if isinstance(salidas, str):
-            salidas = [salidas]
-        if not isinstance(salidas, list):
-            salidas = []
-        salidas = [str(s).strip() for s in salidas if str(s).strip()][:6]  # máximo 6 por estética
-
         cleaned.append({
             "ciclo": str(r.get("ciclo", "")).strip(),
             "grado": str(r.get("grado", "")).strip(),
             "familia_profesional": str(r.get("familia_profesional", "")).strip(),
             "motivo": str(r.get("motivo", "")).strip(),
-            "salidas_laborales": salidas,
-            "rango_salarial": str(r.get("rango_salarial", "")).strip(),
-            "encaje": safe_int(r.get("encaje", 0), 0)
+            "encaje": int(r.get("encaje", 0)) if str(r.get("encaje", "0")).isdigit() else 0
         })
 
-    return {"nota_salarios": nota, "recomendaciones": cleaned}
+    # Si faltan (por si el modelo hace cosas raras), seguimos devolviendo lo que haya
+    return {"recomendaciones": cleaned}
 
 
 @app.get("/")
 def index():
     return jsonify({
-        "mensaje": "Backend activo (Bedrock Nova).",
+        "mensaje": "Backend activo (Nova Pro).",
         "endpoints": ["/health", "/api/orientacion"]
     })
 
@@ -202,7 +175,7 @@ def orientacion():
     if not respuestas or not isinstance(respuestas, dict):
         return jsonify({
             "ok": False,
-            "error": "No llegó JSON válido. Envía Content-Type: application/json"
+            "error": "No llegó JSON válido. Asegúrate de enviar Content-Type: application/json"
         }), 400
 
     prompt = build_prompt(respuestas)
@@ -221,7 +194,10 @@ def orientacion():
 
         final_data = normalize_output(parsed)
 
-        return jsonify({"ok": True, "data": final_data}), 200
+        return jsonify({
+            "ok": True,
+            "data": final_data
+        }), 200
 
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
@@ -229,4 +205,3 @@ def orientacion():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=True)
-

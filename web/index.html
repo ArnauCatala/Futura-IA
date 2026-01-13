@@ -7,74 +7,152 @@
 
   <style>
     :root{
-      --bg:#eef4ff;
-      --card:#ffffff;
+      --bg0:#eaf4ff;
+      --bg1:#f7fbff;
+
+      --card: rgba(255,255,255,.86);
+      --card2:#ffffff;
+
+      --text:#0b2540;
+      --muted:#4a6b86;
+
+      --line: rgba(180, 218, 255, .70);
+
       --primary:#2f6fed;
-      --primary-dark:#1e55c9;
+      --primary2:#1f6ae0;
       --accent:#7c3aed;
-      --line:#dbe7ff;
-      --text:#0b1a33;
-      --muted:#4b5a77;
-      --radius:18px;
-      --shadow:0 12px 30px rgba(30,70,160,.14);
-      --chip:#eff5ff;
+
+      --radius:22px;
+      --radius2:28px;
+
+      --shadow: 0 18px 60px rgba(15, 60, 110, 0.16);
+      --shadow2: 0 10px 26px rgba(15, 60, 110, 0.12);
     }
+
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      background:linear-gradient(180deg,#f4f8ff,#eaf1ff);
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial;
       color:var(--text);
       min-height:100vh;
+      padding:26px;
+
+      background:
+        radial-gradient(1200px 700px at 12% 0%, #d6ecff 0%, transparent 60%),
+        radial-gradient(1000px 600px at 92% 10%, #dff3ff 0%, transparent 55%),
+        radial-gradient(900px 600px at 50% 100%, #e9f6ff 0%, transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
       display:flex;
       align-items:center;
       justify-content:center;
-      padding:26px;
     }
+
     .wrap{
       width:100%;
-      max-width:980px;
+      max-width:1100px;
       display:grid;
       grid-template-columns: 1.05fr .95fr;
       gap:18px;
+      align-items:stretch;
     }
-    @media (max-width: 920px){
+    @media (max-width: 980px){
       .wrap{grid-template-columns:1fr}
     }
 
-    .card{
-      background:var(--card);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:26px;
-      border:1px solid rgba(219,231,255,.8);
+    .panel{
+      border-radius: var(--radius2);
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.72));
+      box-shadow: var(--shadow);
+      padding: 26px;
+      backdrop-filter: blur(10px);
+      overflow:hidden;
+      position:relative;
+    }
+    .panel::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(520px 320px at 12% 10%, rgba(47,111,237,.20), transparent 60%),
+        radial-gradient(520px 320px at 88% 22%, rgba(124,58,237,.16), transparent 60%),
+        radial-gradient(520px 380px at 60% 95%, rgba(31,106,224,.14), transparent 62%);
+      pointer-events:none;
+    }
+
+    .panel > *{position:relative}
+
+    .topline{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom: 12px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:9px 12px;
+      border-radius:999px;
+      background: rgba(237, 246, 255, .90);
+      border:1px solid rgba(180, 218, 255, .75);
+      color: var(--primary2);
+      font-weight:900;
+      font-size:12px;
+      user-select:none;
+      white-space:nowrap;
+    }
+    .dot{
+      width:10px; height:10px;
+      border-radius:99px;
+      background: var(--primary);
+      box-shadow: 0 0 0 4px rgba(47,111,237,.12);
     }
 
     h1{
-      margin:0 0 8px;
-      font-size:30px;
-      color:var(--primary-dark);
-      letter-spacing:-.2px;
+      margin: 6px 0 10px;
+      font-size: clamp(28px, 3.1vw, 40px);
+      letter-spacing: -0.8px;
+      line-height: 1.05;
     }
     .subtitle{
-      margin:0 0 18px;
+      margin:0 0 16px;
       color:var(--muted);
-      font-weight:650;
-      line-height:1.35;
+      font-weight: 650;
+      line-height: 1.5;
+      font-size: 14px;
+      max-width: 65ch;
+    }
+    .subtitle b{color:var(--text)}
+
+    .features{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin: 12px 0 16px;
+      padding:0;
+      list-style:none;
+    }
+    .feat{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius: 999px;
+      background: rgba(243, 249, 255, .95);
+      border: 1px solid rgba(180, 218, 255, .70);
+      color: var(--muted);
+      font-weight: 850;
+      font-size: 12px;
     }
 
-    .chip{
-      display:inline-flex;
-      gap:8px;
-      align-items:center;
-      background:var(--chip);
-      border:1px solid var(--line);
-      padding:8px 12px;
-      border-radius:999px;
-      font-weight:800;
-      color:var(--muted);
-      font-size:13px;
-      margin-bottom:14px;
+    h2{
+      margin: 14px 0 10px;
+      font-size: 16px;
+      color: var(--primary2);
+      letter-spacing: -0.2px;
     }
 
     .list{
@@ -91,20 +169,21 @@
       justify-content:space-between;
       gap:12px;
       padding:12px 14px;
-      border:1px solid var(--line);
-      border-radius:14px;
-      background:#fbfdff;
-      font-weight:900;
-      color:#1a2a48;
+      border:1px solid rgba(180, 218, 255, .70);
+      border-radius:16px;
+      background: rgba(251,253,255,.95);
+      font-weight:950;
+      color:#142a44;
     }
     .badge{
       font-size:12px;
-      font-weight:900;
+      font-weight:950;
       color:#fff;
-      padding:6px 10px;
+      padding:7px 10px;
       border-radius:999px;
-      background:linear-gradient(90deg,var(--primary),var(--accent));
+      background: linear-gradient(90deg, var(--primary), var(--accent));
       white-space:nowrap;
+      box-shadow: 0 10px 18px rgba(47,111,237,.18);
     }
 
     .btn{
@@ -113,50 +192,90 @@
       justify-content:center;
       gap:10px;
       border:0;
-      border-radius:16px;
+      border-radius:18px;
       padding:14px 18px;
       font-size:16px;
       font-weight:950;
       cursor:pointer;
       text-decoration:none;
-      background:var(--primary);
-      color:#fff;
       width:100%;
       margin-top:18px;
+      color:#fff;
+      background: linear-gradient(180deg, var(--primary), var(--primary2));
+      box-shadow: 0 14px 28px rgba(47,111,237,.24);
+      transition: transform .05s ease, filter .15s ease;
     }
-    .btn:hover{background:var(--primary-dark)}
+    .btn:hover{filter:brightness(1.04)}
+    .btn:active{transform:scale(.99)}
 
-    /* Imagen futurista “sin depender de internet”: SVG inline */
-    .heroImg{
-      width:100%;
-      height:100%;
-      min-height:320px;
-      border-radius:var(--radius);
-      overflow:hidden;
-      border:1px solid rgba(219,231,255,.8);
-      background:radial-gradient(1200px 600px at 20% 20%, rgba(124,58,237,.22), transparent 60%),
-                 radial-gradient(900px 500px at 80% 30%, rgba(47,111,237,.22), transparent 55%),
-                 linear-gradient(135deg,#0b1a33,#1b2a55);
-      position:relative;
+    .note{
+      margin:14px 0 0;
+      color:var(--muted);
+      font-weight:650;
+      font-size:13px;
+      line-height: 1.45;
+      opacity:.95;
     }
+
+    /* RIGHT SIDE: ROBOT */
+    .heroImg{
+      border-radius: var(--radius2);
+      border:1px solid var(--line);
+      background:
+        radial-gradient(1200px 600px at 20% 20%, rgba(124,58,237,.20), transparent 60%),
+        radial-gradient(900px 500px at 80% 30%, rgba(47,111,237,.20), transparent 55%),
+        linear-gradient(135deg,#0b1a33,#1b2a55);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+      display:flex;
+      min-height: 420px;
+    }
+
     .heroImg svg{
       width:100%;
       height:100%;
       display:block;
-      opacity:.95;
+      opacity:.96;
     }
+
     .imgLabel{
       position:absolute;
       left:16px;
       bottom:14px;
+      display:inline-flex;
+      gap:10px;
+      align-items:center;
+
       background:rgba(255,255,255,.10);
       border:1px solid rgba(255,255,255,.18);
       color:#e6eeff;
-      font-weight:850;
-      padding:8px 12px;
+      font-weight:900;
+      padding:9px 12px;
       border-radius:999px;
       backdrop-filter: blur(6px);
       font-size:13px;
+    }
+    .imgLabel .dot2{
+      width:10px; height:10px;
+      border-radius:99px;
+      background:#2f6fed;
+      box-shadow: 0 0 0 4px rgba(47,111,237,.18);
+    }
+
+    .cornerTag{
+      position:absolute;
+      right:14px;
+      top:14px;
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:950;
+      color:#dfefff;
+      background: rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.16);
+      backdrop-filter: blur(6px);
+      white-space:nowrap;
     }
   </style>
 </head>
@@ -164,47 +283,72 @@
 <body>
   <div class="wrap">
 
-    <div class="card">
-      <div class="chip">🤖 Proyecto IA · Orientación FP (Comunidad Valenciana)</div>
-      <h1>Bienvenido</h1>
+    <!-- LEFT -->
+    <div class="panel">
+      <div class="topline">
+        <div class="pill"><span class="dot"></span>Tu asistente de IA</div>
+        <div class="pill">Proyecto clase IA</div>
+      </div>
+
+      <h1>Te hago 15 preguntas<br>y te ayudo a decidir tu futuro</h1>
+
       <p class="subtitle">
-        Vamos a realizar un cuestionario rápido para que la IA recomiende
-        <b>3 ciclos formativos</b> que encajen mejor con el perfil del alumno.
-        Al final verás también <b>trabajos relacionados</b> y <b>rangos salariales</b> orientativos.
+        Soy tu <b>asistente de orientación académica con IA</b>.
+        Voy a realizarte varias preguntas para ayudarte a decidir <b>qué estudiar</b> y <b>dónde</b>
+        (orientado a la <b>Formación Profesional</b> en la <b>Comunitat Valenciana</b>).
+        Al finalizar, el sistema podrá recomendarte <b>hasta 3 ciclos formativos</b> que encajen con tus gustos y aspiraciones.
       </p>
 
-      <h2 style="margin:0 0 10px;color:var(--primary-dark);font-size:18px;">Alumnos</h2>
+      <ul class="features">
+        <li class="feat">🧠 Recomendación personalizada</li>
+        <li class="feat">🎓 Enfoque FP (CV)</li>
+        <li class="feat">🔎 Basado en intereses</li>
+        <li class="feat">⚡ Rápido (2–3 min)</li>
+      </ul>
+
+      <h2>Alumnos</h2>
       <ul class="list">
         <li class="student">Jose Luis <span class="badge">Alumno</span></li>
         <li class="student">Maria <span class="badge">Alumna</span></li>
         <li class="student">Arnau <span class="badge">Alumno</span></li>
       </ul>
 
+      <!-- Mantengo tu enlace EXACTO -->
       <a class="btn" href="cuestionario.html">Empezar cuestionario →</a>
 
-      <p style="margin:14px 0 0;color:var(--muted);font-weight:650;font-size:13px;">
+      <p class="note">
         *No se guardan datos personales. Se envían respuestas al backend para generar recomendaciones.
       </p>
     </div>
 
-    <div class="heroImg">
-      <!-- SVG futurista inline (sin depender de imágenes externas) -->
+    <!-- RIGHT -->
+    <div class="heroImg" aria-label="Imagen robot futurista">
+      <div class="cornerTag">🤖 IA futurista · modo orientación</div>
+
+      <!-- Robot futurista inline (sin depender de internet) -->
       <svg viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stop-color="#2f6fed"/>
             <stop offset="1" stop-color="#7c3aed"/>
           </linearGradient>
-          <radialGradient id="rg" cx="50%" cy="45%" r="60%">
-            <stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/>
+          <linearGradient id="metal" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#ffffff" stop-opacity=".92"/>
+            <stop offset="1" stop-color="#e6f3ff" stop-opacity=".90"/>
+          </linearGradient>
+          <radialGradient id="rg" cx="50%" cy="45%" r="65%">
+            <stop offset="0" stop-color="#ffffff" stop-opacity="0.18"/>
             <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
           </radialGradient>
+          <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#0b3d6b" flood-opacity=".22"/>
+          </filter>
         </defs>
 
         <rect x="0" y="0" width="900" height="600" fill="url(#rg)"/>
 
-        <!-- “Circuitos” -->
-        <g stroke="url(#g1)" stroke-width="3" opacity="0.7" fill="none">
+        <!-- Circuitos decorativos -->
+        <g stroke="url(#g1)" stroke-width="3" opacity="0.55" fill="none">
           <path d="M80 120 H300 V210 H520 V140 H760" />
           <path d="M110 420 H280 V360 H430 V480 H760" />
           <path d="M140 260 H250 V300 H360 V260 H520 V300 H680" />
@@ -214,20 +358,43 @@
           <circle cx="680" cy="300" r="8" fill="#7c3aed"/>
         </g>
 
-        <!-- “Cerebro / IA” -->
-        <g transform="translate(450 300)">
-          <ellipse rx="140" ry="110" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
-          <path d="M-90 -20 C-80 -70,-20 -90, 0 -60 C 20 -90, 80 -70, 90 -20 C 110 20, 80 70, 30 65 C 10 85, -10 85, -30 65 C -80 70, -110 20, -90 -20 Z"
-                fill="rgba(47,111,237,0.18)" stroke="rgba(124,58,237,0.55)" stroke-width="2"/>
-          <g stroke="rgba(255,255,255,0.45)" stroke-width="2">
-            <path d="M-60 -10 H60" />
-            <path d="M-40 -40 H40" />
-            <path d="M-40 20 H40" />
-            <path d="M-20 50 H20" />
-          </g>
+        <!-- Robot -->
+        <g transform="translate(450 320)" filter="url(#sh)">
+          <!-- glow -->
+          <ellipse cx="0" cy="-120" rx="240" ry="170" fill="rgba(47,111,237,0.14)"/>
+          <!-- head -->
+          <path d="M-170 -220c0-76 62-138 138-138h64c76 0 138 62 138 138v40c0 26-21 46-46 46h-248c-26 0-46-21-46-46v-40z"
+                fill="url(#metal)" stroke="rgba(180,218,255,.65)" stroke-width="2"/>
+          <!-- visor -->
+          <rect x="-120" y="-300" width="240" height="78" rx="39" fill="#061a2b" opacity=".92"/>
+          <circle cx="-55" cy="-261" r="14" fill="#2f6fed"/>
+          <circle cx="55" cy="-261" r="14" fill="#7c3aed"/>
+          <rect x="-18" y="-270" width="36" height="18" rx="9" fill="#d7f2ff" opacity=".9"/>
+          <!-- antenna -->
+          <path d="M0 -370v-24" stroke="#2f6fed" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="0" cy="-402" r="12" fill="url(#g1)"/>
+
+          <!-- body -->
+          <path d="M-220 -80c0-74 60-134 134-134h172c74 0 134 60 134 134v38c0 28-23 50-50 50h-340c-28 0-50-23-50-50v-38z"
+                fill="rgba(255,255,255,0.10)" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+          <path d="M-190 -78c0-56 45-101 101-101h178c56 0 101 45 101 101v34H-190v-34z"
+                fill="url(#metal)" stroke="rgba(180,218,255,.55)" stroke-width="2"/>
+          <rect x="-70" y="-140" width="140" height="26" rx="13" fill="url(#g1)" opacity=".85"/>
+
+          <!-- arms -->
+          <path d="M-260 -70c-30 0-54 24-54 54v18c0 18 14 32 32 32h70v-104h-48z"
+                fill="url(#metal)" stroke="rgba(180,218,255,.55)" stroke-width="2"/>
+          <path d="M260 -70c30 0 54 24 54 54v18c0 18-14 32-32 32h-70v-104h48z"
+                fill="url(#metal)" stroke="rgba(180,218,255,.55)" stroke-width="2"/>
+          <rect x="-322" y="28" width="80" height="34" rx="17" fill="url(#g1)" opacity=".85"/>
+          <rect x="242" y="28" width="80" height="34" rx="17" fill="url(#g1)" opacity=".85"/>
         </g>
+
+        <!-- base shadow -->
+        <ellipse cx="450" cy="520" rx="240" ry="26" fill="rgba(0,0,0,0.16)"/>
       </svg>
-      <div class="imgLabel">IA futurista · recomendaciones de FP</div>
+
+      <div class="imgLabel"><span class="dot2"></span>IA futurista · recomendaciones de FP</div>
     </div>
 
   </div>

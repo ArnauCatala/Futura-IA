@@ -4,8 +4,10 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import boto3
 from dotenv import load_dotenv
+from pathlib import Path
 
-load_dotenv()
+env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 MODEL_ID = os.getenv("BEDROCK_MODEL_ID", "amazon.nova-pro-v1:0")

@@ -7,433 +7,232 @@
 
   <style>
     :root{
-      --bg0:#eaf4ff;
-      --bg1:#f7fbff;
-
-      --card: rgba(255,255,255,.86);
-      --card2:#ffffff;
-
-      --text:#0b2540;
-      --muted:#4a6b86;
-
-      --line: rgba(180, 218, 255, .70);
-
+      --bg:#eef4ff;
+      --card:#ffffff;
       --primary:#2f6fed;
-      --primary2:#1f6ae0;
+      --primary-dark:#1e55c9;
+      --line:#dbe7ff;
+      --text:#0b1a33;
+      --muted:#4b5a77;
+      --radius:16px;
+      --shadow:0 10px 26px rgba(30,70,160,.12);
+      --chip:#eff5ff;
+      --soft:#f6f9ff;
       --accent:#7c3aed;
-
-      --radius:22px;
-      --radius2:28px;
-
-      --shadow: 0 18px 60px rgba(15, 60, 110, 0.16);
-      --shadow2: 0 10px 26px rgba(15, 60, 110, 0.12);
     }
 
     *{box-sizing:border-box}
     body{
       margin:0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:linear-gradient(180deg,#f4f8ff,#eaf1ff);
       color:var(--text);
-      background:
-        radial-gradient(1200px 700px at 12% 0%, #d6ecff 0%, transparent 60%),
-        radial-gradient(1000px 600px at 92% 10%, #dff3ff 0%, transparent 55%),
-        radial-gradient(900px 600px at 50% 100%, #e9f6ff 0%, transparent 55%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
-      min-height:100vh;
     }
-
     .wrap{
-      max-width:1040px;
+      max-width:980px;
       margin:auto;
-      padding: 26px 18px 40px;
+      padding:28px;
+      position:relative;
     }
 
-    /* topbar */
     .topbar{
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:12px;
       margin-bottom:14px;
-      flex-wrap:wrap;
     }
     .backlink{
       display:inline-flex;
       align-items:center;
-      gap:10px;
+      gap:8px;
       color:var(--muted);
       text-decoration:none;
-      font-weight:950;
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px solid rgba(180,218,255,.55);
-      background: rgba(255,255,255,.55);
-      backdrop-filter: blur(10px);
-      transition: filter .15s ease, transform .05s ease;
+      font-weight:700;
+      padding:8px 10px;
+      border-radius:12px;
     }
-    .backlink:hover{filter:brightness(1.03)}
-    .backlink:active{transform:scale(.99)}
+    .backlink:hover{background:rgba(47,111,237,.08)}
     .small{
-      color:var(--primary2);
-      font-weight:950;
+      color:var(--muted);
+      font-weight:700;
       font-size:13px;
-      padding:9px 12px;
-      border-radius:999px;
-      border:1px solid rgba(180,218,255,.65);
-      background: rgba(237,246,255,.85);
-      user-select:none;
     }
 
-    /* progress */
-    .progressWrap{
-      margin:10px 0 18px;
-      border-radius: var(--radius2);
-      border: 1px solid rgba(180,218,255,.65);
-      background: rgba(255,255,255,.55);
-      padding: 14px 14px 12px;
-      backdrop-filter: blur(10px);
-      box-shadow: var(--shadow2);
-    }
+    .progressWrap{margin:10px 0 18px;}
     .progressLine{
-      height:10px;
-      border-radius:999px;
-      background:rgba(11,37,64,.10);
-      overflow:hidden;
+      height:10px;border-radius:999px;background:rgba(11,26,51,.12);overflow:hidden;
     }
     .progressFill{
-      height:100%;
-      width:0%;
+      height:100%;width:0%;
       background:linear-gradient(90deg,var(--primary),var(--accent));
-      border-radius:999px;
-      transition:width .25s ease;
+      border-radius:999px;transition:width .25s ease;
     }
     .progressMeta{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-top:8px;
-      color:var(--muted);
-      font-weight:900;
-      font-size:13px;
-      gap:10px;
-      flex-wrap:wrap;
+      display:flex;justify-content:space-between;align-items:center;
+      margin-top:8px;color:var(--muted);font-weight:800;font-size:13px;
     }
 
-    /* cards */
     .card{
-      border-radius: var(--radius2);
-      border: 1px solid rgba(180,218,255,.65);
-      background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.72));
-      box-shadow: var(--shadow);
-      padding: 22px;
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:22px;
       margin-bottom:18px;
-      backdrop-filter: blur(10px);
-      overflow:hidden;
-      position:relative;
     }
-    .card::before{
-      content:"";
-      position:absolute; inset:-2px;
-      background:
-        radial-gradient(520px 320px at 12% 10%, rgba(47,111,237,.16), transparent 60%),
-        radial-gradient(520px 320px at 88% 22%, rgba(124,58,237,.12), transparent 60%),
-        radial-gradient(520px 380px at 60% 95%, rgba(31,106,224,.10), transparent 62%);
-      pointer-events:none;
-    }
-    .card > *{position:relative}
 
-    /* hero */
-    .hero{
-      display:flex;
-      gap:14px;
-      align-items:flex-start;
-    }
+    .hero{display:flex;gap:14px;align-items:flex-start;}
     .icon{
-      width:46px;
-      height:46px;
-      border-radius:16px;
-      background: linear-gradient(135deg,var(--accent),var(--primary));
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:#fff;
-      font-size:20px;
-      font-weight:950;
-      flex:0 0 auto;
-      box-shadow: 0 12px 22px rgba(47,111,237,.18);
+      width:44px;height:44px;border-radius:14px;
+      background:linear-gradient(135deg,var(--accent),var(--primary));
+      display:flex;align-items:center;justify-content:center;
+      color:#fff;font-size:20px;font-weight:900;flex:0 0 auto;
     }
-    h1{
-      margin:0 0 4px;
-      font-size: 26px;
-      color: var(--primary2);
-      letter-spacing: -0.4px;
-    }
-    .desc{
-      margin:0;
-      color:var(--muted);
-      line-height:1.5;
-      font-weight:650;
-      font-size:14px;
-      max-width: 75ch;
-    }
+    h1{margin:0 0 4px;font-size:26px;color:var(--primary-dark);}
+    .desc{margin:0;color:var(--muted);line-height:1.35;font-weight:600;}
 
-    /* question blocks */
     .qblock{
-      border: 1px solid rgba(180,218,255,.70);
-      background: rgba(246, 251, 255, .70);
-      border-radius: 18px;
+      border:1px solid var(--line);
+      background:var(--soft);
+      border-radius:16px;
       overflow:hidden;
-      margin-top: 16px;
-      box-shadow: 0 10px 22px rgba(15, 60, 110, 0.06);
-      animation: fadeUp .18s ease both;
+      margin-top:16px;
     }
-    @keyframes fadeUp{
-      from{opacity:0; transform: translateY(6px)}
-      to{opacity:1; transform: translateY(0)}
-    }
-
     .qhead{
-      display:flex;
-      gap:12px;
-      align-items:center;
-      padding:16px 16px 12px;
-      background: linear-gradient(180deg, rgba(124,58,237,.08), rgba(47,111,237,.06));
-      border-bottom:1px solid rgba(180,218,255,.70);
+      display:flex;gap:12px;align-items:center;
+      padding:16px 16px 10px;
+      background:rgba(124,58,237,.06);
+      border-bottom:1px solid var(--line);
     }
     .qnum{
-      width:30px;
-      height:30px;
-      border-radius:999px;
-      background: linear-gradient(180deg, var(--primary), var(--primary2));
-      color:#fff;
-      font-weight:950;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:13px;
-      flex:0 0 auto;
-      box-shadow: 0 10px 18px rgba(47,111,237,.22);
+      width:28px;height:28px;border-radius:999px;
+      background:var(--primary);color:#fff;font-weight:900;
+      display:flex;align-items:center;justify-content:center;
+      font-size:13px;flex:0 0 auto;
     }
-    .qtitle{
-      margin:0;
-      font-size:15px;
-      font-weight:950;
-      color:var(--text);
-    }
-    .qhint{
-      margin:3px 0 0;
-      font-size:13px;
-      color:var(--muted);
-      font-weight:650;
-    }
+    .qtitle{margin:0;font-size:15px;font-weight:900;color:var(--text);}
+    .qhint{margin:2px 0 0;font-size:13px;color:var(--muted);font-weight:600;}
+    .qbody{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;}
 
-    .qbody{
-      padding:14px 16px 16px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-
-    /* option row clickable */
     .optionRow{
-      display:flex;
-      align-items:flex-start;
-      gap:10px;
-      background: rgba(255,255,255,.92);
-      border: 1px solid rgba(180,218,255,.70);
-      border-radius: 14px;
-      padding: 10px 12px;
-      cursor:pointer;
-      transition: box-shadow .15s ease, border-color .15s ease, transform .05s ease, background .15s ease;
-      user-select:none;
+      display:flex;align-items:center;gap:10px;
+      background:#fff;border:1px solid var(--line);
+      border-radius:12px;padding:10px 12px;
     }
-    .optionRow:hover{
-      border-color: rgba(107,156,255,.80);
-      box-shadow: 0 10px 18px rgba(47,111,237,.10);
-      background: #ffffff;
-    }
-    .optionRow:active{transform:scale(.995)}
+    .optionRow input{transform:scale(1.05)}
+    .optionRow label{width:100%;cursor:pointer;font-weight:700;color:#1b2b4a;}
 
-    .optionRow input{
-      margin-top:2px;
-      transform: scale(1.08);
-      accent-color: var(--primary);
-      cursor:pointer;
-      flex:0 0 auto;
-    }
-    .optionRow label{
-      width:100%;
-      cursor:pointer;
-      font-weight:850;
-      color:#1b2b4a;
-      line-height:1.25;
-    }
-
-    /* selected style */
-    .optionRow.selected{
-      border-color: rgba(47,111,237,.95);
-      background: rgba(47,111,237,.06);
-      box-shadow: 0 12px 22px rgba(47,111,237,.12);
-    }
-
-    /* nav buttons */
     .nav{
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      margin-top:18px;
-      flex-wrap:wrap;
+      display:flex;justify-content:space-between;gap:12px;
+      margin-top:18px;flex-wrap:wrap;
     }
     .btn{
-      border:0;
-      border-radius:16px;
-      padding:12px 18px;
-      font-size:15px;
-      font-weight:950;
-      cursor:pointer;
-      transition: filter .15s ease, transform .05s ease, opacity .15s ease;
+      border:0;border-radius:14px;
+      padding:12px 18px;font-size:15px;font-weight:900;cursor:pointer;
     }
-    .btn:active{transform:scale(.99)}
-    .btnPrimary{
-      background: linear-gradient(180deg, var(--primary), var(--primary2));
-      color:#fff;
-      box-shadow: 0 14px 26px rgba(47,111,237,.20);
-    }
-    .btnPrimary:hover{filter:brightness(1.03)}
-    .btnGhost{
-      background: rgba(47,111,237,.10);
-      color: var(--primary2);
-      border:1px solid rgba(180,218,255,.65);
-    }
-    .btnGhost:hover{filter:brightness(1.03)}
-    .btnDanger{
-      background: rgba(220,38,38,.10);
-      color:#991b1b;
-      border:1px solid rgba(220,38,38,.20);
-    }
-    .btnDanger:hover{filter:brightness(1.03)}
-    .btn:disabled{opacity:.55; cursor:not-allowed; box-shadow:none;}
+    .btnPrimary{background:var(--primary);color:#fff;}
+    .btnPrimary:hover{background:var(--primary-dark)}
+    .btnGhost{background:rgba(47,111,237,.10);color:var(--primary-dark);}
+    .btnGhost:hover{background:rgba(47,111,237,.16)}
+    .btnDanger{background:rgba(220,38,38,.10);color:#991b1b;}
+    .btnDanger:hover{background:rgba(220,38,38,.16)}
+    .btn:disabled{opacity:.55;cursor:not-allowed;}
 
-    /* results */
     .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
     @media (max-width: 920px){.grid{grid-template-columns:1fr}}
     .rec{
-      border:1px solid rgba(180,218,255,.70);
-      border-radius:18px;
+      border:1px solid var(--line);
+      border-radius:16px;
       padding:16px;
-      background: rgba(255,255,255,.88);
-      box-shadow: 0 12px 22px rgba(15, 60, 110, 0.08);
+      background:#fbfdff;
     }
-    .rec h3{
-      margin:0 0 10px;
-      font-size:15px;
-      color: var(--primary2);
-      letter-spacing:-.2px;
-    }
+    .rec h3{margin:0 0 8px;font-size:15px;color:var(--primary-dark);}
     .meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
     .chip{
-      background: rgba(237,246,255,.92);
-      border:1px solid rgba(180,218,255,.70);
+      background:var(--chip);
+      border:1px solid var(--line);
       padding:6px 10px;
       border-radius:999px;
       font-size:12px;
       color:var(--muted);
-      font-weight:900;
+      font-weight:800;
     }
-    .motivo{margin:0;color:#22304a;line-height:1.45;font-size:14px}
-    .score{margin-top:10px;font-weight:950;color:var(--primary2)}
-
+    .motivo{margin:0;color:#22304a;line-height:1.35;font-size:14px}
+    .score{margin-top:10px;font-weight:900;color:var(--primary-dark)}
     .jobs{
       margin:10px 0 0;
       padding-left:18px;
       color:#22304a;
       font-size:14px;
-      line-height:1.45;
+      line-height:1.35;
       font-weight:700;
     }
 
-    pre{
-      background:#061a2b;
-      color:#d7f2ff;
-      padding:18px;
-      border-radius:18px;
-      overflow:auto;
-      max-height:420px;
-      font-size:13px;
-      border:1px solid rgba(207,228,255,.25);
+    .btnPick{
+      width:100%;
+      margin-top:12px;
+      background:linear-gradient(90deg,var(--primary),var(--accent));
+      color:#fff;
     }
+    .btnPick:hover{filter:brightness(.95)}
 
+    pre{
+      background:#0b1a33;color:#e6eeff;
+      padding:18px;border-radius:14px;
+      overflow:auto;max-height:420px;font-size:13px;
+    }
     .hide{display:none}
 
-    .overlay.hide{ display:none !important; }
-
-    /* =========================
-       Overlay de carga (UX)
-       ========================= */
+    /* ========= Overlay “Pensando…” ========= */
     .overlay{
-      position: fixed;
-      inset: 0;
-      display:flex;
+      position:fixed;
+      inset:0;
+      background:rgba(11,26,51,.55);
+      display:none;
       align-items:center;
       justify-content:center;
-      padding: 18px;
-      background: rgba(6, 26, 43, .42);
-      backdrop-filter: blur(10px);
-      z-index: 9999;
+      padding:18px;
+      z-index:9999;
+      backdrop-filter: blur(3px);
     }
-
+    .overlay.show{display:flex;}
     .overlayCard{
-      width: min(560px, 100%);
-      border-radius: 22px;
-      border: 1px solid rgba(180, 218, 255, .55);
-      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.78));
-      box-shadow: 0 22px 70px rgba(0,0,0,.22);
-      padding: 16px;
-      display:flex;
-      gap: 14px;
-      align-items:flex-start;
+      width:min(520px, 100%);
+      background:#fff;
+      border-radius:18px;
+      border:1px solid rgba(219,231,255,.9);
+      box-shadow:0 18px 50px rgba(0,0,0,.25);
+      padding:18px;
     }
-
+    .ovTop{display:flex;gap:12px;align-items:center;}
     .spinner{
-      width: 44px;
-      height: 44px;
-      border-radius: 999px;
-      border: 4px solid rgba(47,111,237,.18);
-      border-top-color: rgba(47,111,237,.95);
-      animation: spin .8s linear infinite;
-      flex: 0 0 auto;
-      margin-top: 2px;
+      width:28px;height:28px;border-radius:999px;
+      border:4px solid rgba(47,111,237,.25);
+      border-top-color: var(--primary);
+      animation: spin 1s linear infinite;
+      flex:0 0 auto;
     }
-
-    @keyframes spin{
-      to { transform: rotate(360deg); }
-    }
-
-    .overlayTitle{
-      font-weight: 950;
-      color: var(--primary2);
-      font-size: 16px;
-      letter-spacing: -.2px;
-    }
-
-    .overlayMsg{
-      margin-top: 4px;
-      color: #1b2b4a;
-      font-weight: 850;
-      font-size: 14px;
-      line-height: 1.35;
-    }
-
-    .overlayHint{
-      margin-top: 8px;
-      color: var(--muted);
-      font-weight: 700;
-      font-size: 12px;
-    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .ovTitle{margin:0;font-weight:950;color:var(--primary-dark);font-size:16px;}
+    .ovDesc{margin:6px 0 0;color:var(--muted);font-weight:750;line-height:1.35;font-size:13px;}
   </style>
 </head>
 
 <body>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay">
+  <div class="overlayCard">
+    <div class="ovTop">
+      <div class="spinner"></div>
+      <div>
+        <p class="ovTitle">Procesando…</p>
+        <p class="ovDesc">Estoy consultando a la IA (Nova Pro). Esto puede tardar unos segundos.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="wrap">
 
   <div class="topbar">
@@ -489,28 +288,13 @@
   </div>
 
   <div class="card hide" id="jsonCard">
-    <h1 style="font-size:20px;margin:0 0 10px;color:var(--primary2)">JSON devuelto por la IA</h1>
+    <h1 style="font-size:20px;margin:0 0 10px;color:var(--primary-dark)">JSON devuelto por la IA</h1>
     <pre id="output">{ }</pre>
   </div>
 
 </div>
 
-<!-- OVERLAY CARGANDO -->
-<div id="loadingOverlay" class="overlay hide" aria-live="polite" aria-busy="true">
-  <div class="overlayCard">
-    <div class="spinner" aria-hidden="true"></div>
-    <div class="overlayText">
-      <div class="overlayTitle">Procesando tus respuestas…</div>
-      <div class="overlayMsg" id="loadingMsg">Analizando tu perfil.</div>
-      <div class="overlayHint">Esto puede tardar unos segundos. No cierres la página.</div>
-    </div>
-  </div>
-</div>
-
 <script>
-/** =========================
- *  Preguntas (las tuyas)
- *  ========================= */
 const questionnaireData = [
   {
     id: "interests",
@@ -685,12 +469,9 @@ const questionnaireData = [
   }
 ];
 
-/** =========================
- *  Estado + helpers
- *  ========================= */
 let step = 0;
 const totalSteps = questionnaireData.length;
-const answers = {}; // { qId: [options...] }
+const answers = {};
 
 const elCatCount = document.getElementById("catCount");
 const elProgFill = document.getElementById("progressFill");
@@ -710,50 +491,18 @@ const cards = document.getElementById("cards");
 const output = document.getElementById("output");
 const notaSalarios = document.getElementById("notaSalarios");
 
-/** =========================
- *  UX: overlay "procesando"
- *  ========================= */
-const loadingOverlay = document.getElementById("loadingOverlay");
-const loadingMsg = document.getElementById("loadingMsg");
-let loadingTimer = null;
-let loadingRotate = null;
+const overlay = document.getElementById("overlay");
 
 function setBusy(isBusy){
-  btnPrev.disabled = isBusy || (step === 0);
-  btnNext.disabled = isBusy;
-  wizardCard.style.pointerEvents = isBusy ? "none" : "auto";
-  wizardCard.style.opacity = isBusy ? "0.92" : "1";
-}
-
-function showLoading(){
-  const messages = [
-    "Analizando tu perfil y tus preferencias…",
-    "Relacionando tus intereses con familias profesionales…",
-    "Buscando ciclos que encajen contigo…",
-    "Preparando las 3 mejores recomendaciones…"
-  ];
-  let i = 0;
-  loadingMsg.textContent = messages[i];
-
-  loadingOverlay.classList.remove("hide");
-  setBusy(true);
-
-  loadingRotate = setInterval(() => {
-    i = (i + 1) % messages.length;
-    loadingMsg.textContent = messages[i];
-  }, 2000);
-
-  loadingTimer = setTimeout(() => {
-    loadingMsg.textContent = "Esto está tardando un poco más de lo normal… seguimos trabajando 🙂";
-  }, 12000);
-}
-
-function hideLoading(){
-  loadingOverlay.classList.add("hide");
-  setBusy(false);
-
-  if (loadingRotate) { clearInterval(loadingRotate); loadingRotate = null; }
-  if (loadingTimer) { clearTimeout(loadingTimer); loadingTimer = null; }
+  if(isBusy){
+    overlay.classList.add("show");
+    btnPrev.disabled = true;
+    btnNext.disabled = true;
+  }else{
+    overlay.classList.remove("show");
+    btnPrev.disabled = (step === 0);
+    btnNext.disabled = false;
+  }
 }
 
 function iconChar(icon){
@@ -788,7 +537,6 @@ function renderStep(){
   const cat = questionnaireData[step];
 
   setProgress();
-
   elCatIcon.textContent = iconChar(cat.icon);
   elCatName.textContent = cat.name;
   elCatDesc.textContent = cat.description;
@@ -801,9 +549,8 @@ function renderStep(){
     const optionsHtml = q.options.map((opt, i) => {
       const id = `${q.id}_${i}`;
       const checked = qSaved.includes(opt) ? "checked" : "";
-      const selectedClass = qSaved.includes(opt) ? "selected" : "";
       return `
-        <div class="optionRow ${selectedClass}" data-for="${id}">
+        <div class="optionRow">
           <input type="checkbox" id="${id}" data-qid="${q.id}" value="${escapeHtml(opt)}" ${checked}>
           <label for="${id}">${escapeHtml(opt)}</label>
         </div>
@@ -819,33 +566,16 @@ function renderStep(){
             <p class="qhint">Selecciona todas las opciones que te identifiquen</p>
           </div>
         </div>
-        <div class="qbody">
-          ${optionsHtml}
-        </div>
+        <div class="qbody">${optionsHtml}</div>
       </div>
     `;
   }).join("");
-
-  // Click en toda la fila para alternar (sin doble toggle)
-  elQuestionsHost.querySelectorAll('.optionRow[data-for]').forEach(row => {
-    row.addEventListener("click", (ev) => {
-      const tag = (ev.target && ev.target.tagName) ? ev.target.tagName.toLowerCase() : "";
-      if (tag === "input" || tag === "label") return;
-
-      const id = row.getAttribute("data-for");
-      const cb = document.getElementById(id);
-      if (!cb) return;
-      cb.checked = !cb.checked;
-      cb.dispatchEvent(new Event("change", { bubbles: true }));
-    });
-  });
 
   elQuestionsHost.querySelectorAll('input[type="checkbox"][data-qid]').forEach(cb => {
     cb.addEventListener("change", (e) => {
       const qid = e.target.getAttribute("data-qid");
       const val = e.target.value;
       const arr = answers[qid] ? [...answers[qid]] : [];
-
       if (e.target.checked) {
         if (!arr.includes(val)) arr.push(val);
       } else {
@@ -853,12 +583,6 @@ function renderStep(){
         if (idx >= 0) arr.splice(idx, 1);
       }
       answers[qid] = arr;
-
-      const row = e.target.closest(".optionRow");
-      if (row){
-        if (e.target.checked) row.classList.add("selected");
-        else row.classList.remove("selected");
-      }
     });
   });
 }
@@ -875,15 +599,12 @@ function validateStep(){
   return true;
 }
 
-/** =========================
- *  Envío a backend (Nova Pro)
- *  ========================= */
 async function sendToAI(){
+  setBusy(true);
+
   output.textContent = "Consultando a la IA (Nova Pro)...";
   cards.innerHTML = `<div class="rec">Consultando a la IA…</div>`;
   notaSalarios.textContent = "";
-
-  showLoading();
 
   const payload = { version: "1.0", answers: answers };
 
@@ -915,8 +636,14 @@ async function sendToAI(){
     jsonCard.classList.remove("hide");
     window.scrollTo({top:0, behavior:"smooth"});
   }finally{
-    hideLoading();
+    setBusy(false);
   }
+}
+
+function goToDetails(r){
+  const ciclo = encodeURIComponent(r.ciclo || "");
+  const grado = encodeURIComponent(r.grado || "");
+  window.location.href = `detalle.html?ciclo=${ciclo}&grado=${grado}`;
 }
 
 function renderTop3(recs, nota){
@@ -938,7 +665,7 @@ function renderTop3(recs, nota){
       : `<div class="chip" style="display:inline-block;margin-top:10px;">Salidas laborales: —</div>`;
 
     return `
-      <div class="rec">
+      <div class="rec" data-idx="${idx}">
         <h3>${idx+1}. ${ciclo}</h3>
         <div class="meta">
           <span class="chip">${grado}</span>
@@ -948,14 +675,21 @@ function renderTop3(recs, nota){
         <p class="motivo">${motivo}</p>
         <div class="score">Encaje: ${encaje}/100</div>
         ${salidasHtml}
+        <button class="btn btnPick" type="button" data-pick="${idx}">Elegir esta opción</button>
       </div>
     `;
   }).join("");
+
+  const top3 = recs.slice(0,3);
+  cards.querySelectorAll("button[data-pick]").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const i = parseInt(e.currentTarget.getAttribute("data-pick"), 10);
+      const chosen = top3[i];
+      goToDetails(chosen);
+    });
+  });
 }
 
-/** =========================
- *  Eventos
- *  ========================= */
 btnPrev.addEventListener("click", () => {
   if (step > 0){
     step--;
@@ -986,7 +720,6 @@ document.getElementById("btnAgain").addEventListener("click", () => {
   window.scrollTo({top:0, behavior:"smooth"});
 });
 
-// Init
 renderStep();
 </script>
 

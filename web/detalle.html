@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Detalles de preferencia – Orientación FP (CV)</title>
+
+  <style>
+    :root{
+      --card:#ffffff;
+      --primary:#2f6fed;
+      --primary-dark:#1e55c9;
+      --accent:#7c3aed;
+      --line:#dbe7ff;
+      --text:#0b1a33;
+      --muted:#4b5a77;
+      --radius:16px;
+      --shadow:0 10px 26px rgba(30,70,160,.12);
+      --soft:#f6f9ff;
+      --chip:#eff5ff;
+      --warnbg: rgba(245,158,11,.12);
+      --warn: #92400e;
+      --errbg: rgba(220,38,38,.10);
+      --err: #991b1b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:linear-gradient(180deg,#f4f8ff,#eaf1ff);
+      color:var(--text);
+    }
+    .wrap{max-width:980px;margin:auto;padding:28px;}
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:22px;
+      margin-bottom:18px;
+    }
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;
+    }
+    .backlink{
+      display:inline-flex;align-items:center;gap:8px;
+      color:var(--muted);text-decoration:none;font-weight:900;
+      padding:8px 10px;border-radius:12px;
+    }
+    .backlink:hover{background:rgba(47,111,237,.08)}
+    h1{margin:0 0 6px;font-size:24px;color:var(--primary-dark)}
+    .desc{margin:0;color:var(--muted);font-weight:650;line-height:1.35}
+    .chip{
+      display:inline-flex;gap:8px;align-items:center;
+      background:var(--chip);
+      border:1px solid var(--line);
+      padding:8px 12px;border-radius:999px;
+      font-weight:900;color:var(--muted);font-size:13px;
+      margin-top:12px;
+    }
+    .block{
+      border:1px solid var(--line);
+      background:var(--soft);
+      border-radius:16px;
+      padding:16px;
+      margin-top:16px;
+    }
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    @media(max-width:820px){.row{grid-template-columns:1fr}}
+    label{display:block;font-weight:900;margin-bottom:6px;color:#1b2b4a}
+    input[type="number"], select{
+      width:100%;
+      padding:12px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#fff;
+      font-weight:800;
+      color:#1b2b4a;
+      outline:none;
+    }
+    .opt{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+      font-weight:800;
+      color:#1b2b4a;
+      margin-top:8px;
+    }
+    .nav{
+      display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:18px;
+    }
+    .btn{
+      border:0;border-radius:14px;
+      padding:12px 18px;font-size:15px;font-weight:950;cursor:pointer;
+    }
+    .btnPrimary{background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;}
+    .btnPrimary:hover{filter:brightness(.95)}
+    .btnGhost{background:rgba(47,111,237,.10);color:var(--primary-dark);}
+    .btnGhost:hover{background:rgba(47,111,237,.16)}
+
+    .hint{margin:10px 0 0;color:var(--muted);font-weight:650;font-size:13px}
+    .alert{
+      margin-top:12px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      font-weight:850;
+      font-size:13px;
+      display:none;
+      line-height:1.35;
+      white-space:pre-wrap;
+    }
+    .alert.warn{display:block;background:var(--warnbg);color:var(--warn);border-color: rgba(245,158,11,.25);}
+    .alert.err{display:block;background:var(--errbg);color:var(--err);border-color: rgba(220,38,38,.25);}
+
+    pre{
+      background:#0b1a33;color:#e6eeff;
+      padding:18px;border-radius:14px;
+      overflow:auto;max-height:360px;font-size:13px;
+      margin-top:16px;
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <a class="backlink" href="cuestionario.html">← Volver al TOP 3</a>
+  </div>
+
+  <div class="card">
+    <h1>Preferencias para esta opción</h1>
+    <p class="desc">Antes de decidir, necesitamos 3 datos rápidos para ajustar la recomendación.</p>
+
+    <div class="chip" id="chipCiclo">Ciclo: —</div>
+    <div class="chip" id="chipGrado">Grado: —</div>
+
+    <div class="block">
+      <div class="row">
+        <div>
+          <label for="edad">Edad</label>
+          <input id="edad" type="number" min="10" max="99" placeholder="Ej. 16">
+        </div>
+
+        <div>
+          <label for="ciudad">¿En qué ciudad estarías dispuesto a estudiar?</label>
+          <select id="ciudad">
+            <option value="">Cargando ciudades...</option>
+          </select>
+          <div class="hint" id="hintCiudades"></div>
+          <div class="alert warn" id="warnBox"></div>
+          <div class="alert err" id="errBox"></div>
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+
+      <label>¿Estarías dispuesto/a a mudarte?</label>
+      <div class="opt"><input type="radio" name="mudanza" value="Sí" id="mud_si"><label for="mud_si" style="margin:0;font-weight:900">Sí</label></div>
+      <div class="opt"><input type="radio" name="mudanza" value="No" id="mud_no"><label for="mud_no" style="margin:0;font-weight:900">No</label></div>
+
+      <div style="height:10px"></div>
+
+      <label>¿Tienes vehículo para desplazarte?</label>
+      <div class="opt"><input type="radio" name="vehiculo" value="Sí" id="veh_si"><label for="veh_si" style="margin:0;font-weight:900">Sí</label></div>
+      <div class="opt"><input type="radio" name="vehiculo" value="No" id="veh_no"><label for="veh_no" style="margin:0;font-weight:900">No</label></div>
+
+      <div class="nav">
+        <button class="btn btnGhost" id="btnVolver" type="button">Volver</button>
+        <button class="btn btnPrimary" id="btnGuardar" type="button">Guardar (por ahora)</button>
+      </div>
+
+      <pre id="debug">{ }</pre>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function qs(name){
+  const u = new URL(window.location.href);
+  return u.searchParams.get(name) || "";
+}
+
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+const ciclo = qs("ciclo");
+const grado = qs("grado");
+
+document.getElementById("chipCiclo").innerHTML = "Ciclo: <b>" + escapeHtml(ciclo || "—") + "</b>";
+document.getElementById("chipGrado").innerHTML = "Grado: <b>" + escapeHtml(grado || "—") + "</b>";
+
+const selCiudad = document.getElementById("ciudad");
+const hint = document.getElementById("hintCiudades");
+const debug = document.getElementById("debug");
+const warnBox = document.getElementById("warnBox");
+const errBox = document.getElementById("errBox");
+
+function showWarn(msg){
+  warnBox.textContent = msg || "";
+  warnBox.className = msg ? "alert warn" : "alert";
+}
+function showErr(msg){
+  errBox.textContent = msg || "";
+  errBox.className = msg ? "alert err" : "alert";
+}
+
+async function loadCities(){
+  selCiudad.innerHTML = `<option value="">Cargando ciudades...</option>`;
+  hint.textContent = "";
+  showWarn("");
+  showErr("");
+
+  try{
+    const url = `http://127.0.0.1:8000/api/ciudades?ciclo=${encodeURIComponent(ciclo)}&grado=${encodeURIComponent(grado)}`;
+    const res = await fetch(url);
+    const json = await res.json();
+
+    if(!json.ok){
+      selCiudad.innerHTML = `<option value="">No se pudieron cargar ciudades</option>`;
+      showErr(json.error || "Error desconocido en backend.");
+      return;
+    }
+
+    // Mostrar cómo ha emparejado el ciclo dentro del CSV (clave para depurar)
+    if(json.match && json.match.matched_ciclo){
+      const rf = (json.match.rapidfuzz ? "RapidFuzz" : "Difflib");
+      const ginfo = json.match.matched_grado ? ` · grado CSV: ${json.match.matched_grado} (${json.match.grado_score}/100)` : "";
+      hint.textContent = `Ciclo detectado en CSV: ${json.match.matched_ciclo} (${json.match.match_score}/100) · ${rf}${ginfo}`;
+    }
+
+    // Si backend avisa de algo (descarga CSV, columnas, etc.)
+    if(json.warning) showWarn(json.warning);
+    if(json.source) showWarn((warnBox.textContent ? warnBox.textContent + "\n" : "") + `Fuente: ${json.source}`);
+
+    const cities = Array.isArray(json.ciudades) ? json.ciudades : [];
+
+    if(!cities.length){
+      selCiudad.innerHTML = `<option value="">No hay ciudades para este ciclo</option>`;
+      showWarn((warnBox.textContent ? warnBox.textContent + "\n" : "") + "Si el ciclo tiene un nombre distinto al del CSV, luego lo afinamos.");
+      return;
+    }
+
+    selCiudad.innerHTML = `<option value="">Selecciona una ciudad...</option>` +
+      cities.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+
+    showWarn((warnBox.textContent ? warnBox.textContent + "\n" : "") + `Ciudades disponibles: ${cities.length}`);
+  }catch(err){
+    selCiudad.innerHTML = `<option value="">Error cargando ciudades</option>`;
+    showErr(String(err));
+  }
+}
+
+function getRadio(name){
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : "";
+}
+
+function collect(){
+  return {
+    ciclo,
+    grado,
+    edad: document.getElementById("edad").value,
+    mudanza: getRadio("mudanza"),
+    vehiculo: getRadio("vehiculo"),
+    ciudad: selCiudad.value
+  };
+}
+
+document.getElementById("btnVolver").addEventListener("click", () => {
+  window.location.href = "cuestionario.html";
+});
+
+document.getElementById("btnGuardar").addEventListener("click", () => {
+  const data = collect();
+  debug.textContent = JSON.stringify(data, null, 2);
+});
+
+loadCities();
+</script>
+
+</body>
+</html>
+

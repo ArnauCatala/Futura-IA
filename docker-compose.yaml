@@ -1,0 +1,19 @@
+services:
+  backend:
+    build: .
+    container_name: futuro_ia_backend
+    ports:
+      - "8000:8000"
+    env_file: .env  # Carga tus variables de AWS y Bedrock
+    volumes:
+      - .:/app      # Permite ver cambios en el código sin reconstruir
+
+  frontend:
+    image: python:3.11-slim
+    container_name: futuro_ia_frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web:/web  # Mapea tu carpeta de la web
+    working_dir: /web
+    command: python -m http.server 3000

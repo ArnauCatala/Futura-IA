@@ -1,0 +1,31 @@
+# --- Python ---
+.venv/
+venv/
+env/
+bin/
+lib/
+include/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Variables de Entorno (SEGURIDAD) ---
+# Nunca subas tus credenciales de AWS a GitHub
+.env
+
+# --- Docker ---
+.dockerignore
+
+# --- IDEs y Editores ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Archivos del Sistema ---
+Thumbs.db
+.DS_Store
+
+# --- Hadoop/Logs temporales (opcional) ---
+*.log
+/user/root/salidaWordcountPython/

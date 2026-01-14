@@ -22,6 +22,8 @@
       --warn: #92400e;
       --errbg: rgba(220,38,38,.10);
       --err: #991b1b;
+      --okbg: rgba(16,185,129,.10);
+      --ok: #065f46;
     }
     *{box-sizing:border-box}
     body{
@@ -67,7 +69,7 @@
     .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
     @media(max-width:820px){.row{grid-template-columns:1fr}}
     label{display:block;font-weight:900;margin-bottom:6px;color:#1b2b4a}
-    input[type="number"], select{
+    input[type="number"], input[type="text"], select{
       width:100%;
       padding:12px 12px;
       border-radius:12px;
@@ -77,6 +79,32 @@
       color:#1b2b4a;
       outline:none;
     }
+
+    .sliderWrap{
+      margin-top:10px;
+      padding:12px 12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+    }
+    .sliderTop{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:10px;
+    }
+    .sliderVal{
+      font-weight:950;
+      color:var(--primary-dark);
+      background:rgba(47,111,237,.10);
+      border:1px solid rgba(47,111,237,.22);
+      padding:6px 10px;
+      border-radius:999px;
+      white-space:nowrap;
+    }
+    input[type="range"]{width:100%}
+
     .opt{
       display:flex;align-items:center;gap:10px;
       padding:10px 12px;
@@ -113,12 +141,20 @@
     }
     .alert.warn{display:block;background:var(--warnbg);color:var(--warn);border-color: rgba(245,158,11,.25);}
     .alert.err{display:block;background:var(--errbg);color:var(--err);border-color: rgba(220,38,38,.25);}
+    .alert.ok{display:block;background:var(--okbg);color:var(--ok);border-color: rgba(16,185,129,.22);}
 
     pre{
       background:#0b1a33;color:#e6eeff;
       padding:18px;border-radius:14px;
       overflow:auto;max-height:360px;font-size:13px;
       margin-top:16px;
+    }
+    .tiny{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:700;
+      margin-top:8px;
+      line-height:1.35;
     }
   </style>
 </head>
@@ -132,7 +168,7 @@
 
   <div class="card">
     <h1>Preferencias para esta opción</h1>
-    <p class="desc">Antes de decidir, necesitamos 3 datos rápidos para ajustar la recomendación.</p>
+    <p class="desc">Vamos a filtrar las ciudades del ciclo por distancia y tus condiciones.</p>
 
     <div class="chip" id="chipCiclo">Ciclo: —</div>
     <div class="chip" id="chipGrado">Grado: —</div>
@@ -145,27 +181,47 @@
         </div>
 
         <div>
-          <label for="ciudad">¿En qué ciudad estarías dispuesto a estudiar?</label>
+          <label for="origen">¿Dónde vives (o vas a vivir)?</label>
+          <input id="origen" type="text" list="listaMunicipios" placeholder="Escribe y elige un municipio de la CV…">
+          <datalist id="listaMunicipios"></datalist>
+
+          <div class="sliderWrap">
+            <div class="sliderTop">
+              <div style="font-weight:950;color:#1b2b4a">Radio máximo</div>
+              <div class="sliderVal" id="kmLabel">20 km</div>
+            </div>
+            <input id="km" type="range" min="1" max="50" value="20">
+            <div class="tiny">Se mostrarán solo las ciudades del ciclo dentro del radio.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="row">
+        <div>
+          <label for="ciudad">Ciudad donde estudiar (filtrada por radio)</label>
           <select id="ciudad">
             <option value="">Cargando ciudades...</option>
           </select>
           <div class="hint" id="hintCiudades"></div>
           <div class="alert warn" id="warnBox"></div>
           <div class="alert err" id="errBox"></div>
+          <div class="alert ok" id="okBox"></div>
+        </div>
+
+        <div>
+          <label>¿Estarías dispuesto/a a mudarte?</label>
+          <div class="opt"><input type="radio" name="mudanza" value="Sí" id="mud_si"><label for="mud_si" style="margin:0;font-weight:900">Sí</label></div>
+          <div class="opt"><input type="radio" name="mudanza" value="No" id="mud_no"><label for="mud_no" style="margin:0;font-weight:900">No</label></div>
+
+          <div style="height:10px"></div>
+
+          <label>¿Tienes vehículo para desplazarte?</label>
+          <div class="opt"><input type="radio" name="vehiculo" value="Sí" id="veh_si"><label for="veh_si" style="margin:0;font-weight:900">Sí</label></div>
+          <div class="opt"><input type="radio" name="vehiculo" value="No" id="veh_no"><label for="veh_no" style="margin:0;font-weight:900">No</label></div>
         </div>
       </div>
-
-      <div style="height:10px"></div>
-
-      <label>¿Estarías dispuesto/a a mudarte?</label>
-      <div class="opt"><input type="radio" name="mudanza" value="Sí" id="mud_si"><label for="mud_si" style="margin:0;font-weight:900">Sí</label></div>
-      <div class="opt"><input type="radio" name="mudanza" value="No" id="mud_no"><label for="mud_no" style="margin:0;font-weight:900">No</label></div>
-
-      <div style="height:10px"></div>
-
-      <label>¿Tienes vehículo para desplazarte?</label>
-      <div class="opt"><input type="radio" name="vehiculo" value="Sí" id="veh_si"><label for="veh_si" style="margin:0;font-weight:900">Sí</label></div>
-      <div class="opt"><input type="radio" name="vehiculo" value="No" id="veh_no"><label for="veh_no" style="margin:0;font-weight:900">No</label></div>
 
       <div class="nav">
         <button class="btn btnGhost" id="btnVolver" type="button">Volver</button>
@@ -183,7 +239,6 @@ function qs(name){
   const u = new URL(window.location.href);
   return u.searchParams.get(name) || "";
 }
-
 function escapeHtml(s){
   return String(s ?? "")
     .replaceAll("&","&amp;")
@@ -192,7 +247,38 @@ function escapeHtml(s){
     .replaceAll('"',"&quot;")
     .replaceAll("'","&#039;");
 }
+function showWarn(msg){
+  const el = document.getElementById("warnBox");
+  el.textContent = msg || "";
+  el.className = msg ? "alert warn" : "alert";
+}
+function showErr(msg){
+  const el = document.getElementById("errBox");
+  el.textContent = msg || "";
+  el.className = msg ? "alert err" : "alert";
+}
+function showOk(msg){
+  const el = document.getElementById("okBox");
+  el.textContent = msg || "";
+  el.className = msg ? "alert ok" : "alert";
+}
+function getRadio(name){
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : "";
+}
+function haversineKm(a, b){
+  const R = 6371;
+  const toRad = d => d * Math.PI / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLon = toRad(b.lon - a.lon);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
 
+  const s = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(s));
+}
+
+/* ===== Estado ===== */
 const ciclo = qs("ciclo");
 const grado = qs("grado");
 
@@ -202,19 +288,88 @@ document.getElementById("chipGrado").innerHTML = "Grado: <b>" + escapeHtml(grado
 const selCiudad = document.getElementById("ciudad");
 const hint = document.getElementById("hintCiudades");
 const debug = document.getElementById("debug");
-const warnBox = document.getElementById("warnBox");
-const errBox = document.getElementById("errBox");
 
-function showWarn(msg){
-  warnBox.textContent = msg || "";
-  warnBox.className = msg ? "alert warn" : "alert";
-}
-function showErr(msg){
-  errBox.textContent = msg || "";
-  errBox.className = msg ? "alert err" : "alert";
+const origenInput = document.getElementById("origen");
+const kmInput = document.getElementById("km");
+const kmLabel = document.getElementById("kmLabel");
+
+kmLabel.textContent = kmInput.value + " km";
+
+let allCycleCities = [];
+let filteredCycleCities = [];
+
+/* ===== Autocomplete de municipios (TODA la CV) ===== */
+async function loadMunicipiosCV(){
+  const dl = document.getElementById("listaMunicipios");
+  dl.innerHTML = "";
+  try{
+    const res = await fetch("http://127.0.0.1:8000/api/municipios");
+    const json = await res.json();
+
+    if(!json.ok || !Array.isArray(json.municipios)){
+      showWarn("No se pudieron cargar los municipios completos. Revisa /api/municipios.");
+      return;
+    }
+
+    json.municipios.forEach(m => {
+      const opt = document.createElement("option");
+      opt.value = m;
+      dl.appendChild(opt);
+    });
+
+    showOk(`Municipios cargados: ${json.municipios.length}`);
+  }catch(err){
+    showWarn("No se pudieron cargar los municipios completos (backend no disponible).");
+  }
 }
 
-async function loadCities(){
+/* ===== Geocoding (Nominatim) con caché ===== */
+function cacheKey(place){
+  return "geo_cv_" + place.toLowerCase().trim();
+}
+function getCachedGeo(place){
+  try{
+    const raw = localStorage.getItem(cacheKey(place));
+    if(!raw) return null;
+    const obj = JSON.parse(raw);
+    if(obj && typeof obj.lat === "number" && typeof obj.lon === "number") return obj;
+  }catch(_){}
+  return null;
+}
+function setCachedGeo(place, geo){
+  try{
+    localStorage.setItem(cacheKey(place), JSON.stringify(geo));
+  }catch(_){}
+}
+async function geocodeMunicipioCV(place){
+  const p = (place || "").trim();
+  if(!p) return null;
+
+  const cached = getCachedGeo(p);
+  if(cached) return cached;
+
+  const q = encodeURIComponent(`${p}, Comunitat Valenciana, España`);
+  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`;
+
+  await new Promise(r => setTimeout(r, 300));
+
+  const res = await fetch(url, { headers: { "Accept":"application/json" } });
+  if(!res.ok) return null;
+
+  const arr = await res.json();
+  if(!Array.isArray(arr) || !arr.length) return null;
+
+  const lat = parseFloat(arr[0].lat);
+  const lon = parseFloat(arr[0].lon);
+  if(!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+
+  const geo = { lat, lon };
+  setCachedGeo(p, geo);
+  return geo;
+}
+
+/* ===== Cargar ciudades del ciclo ===== */
+async function loadCycleCities(){
   selCiudad.innerHTML = `<option value="">Cargando ciudades...</option>`;
   hint.textContent = "";
   showWarn("");
@@ -231,61 +386,151 @@ async function loadCities(){
       return;
     }
 
-    // Mostrar cómo ha emparejado el ciclo dentro del CSV (clave para depurar)
+    // Debug del “match”
     if(json.match && json.match.matched_ciclo){
       const rf = (json.match.rapidfuzz ? "RapidFuzz" : "Difflib");
       const ginfo = json.match.matched_grado ? ` · grado CSV: ${json.match.matched_grado} (${json.match.grado_score}/100)` : "";
       hint.textContent = `Ciclo detectado en CSV: ${json.match.matched_ciclo} (${json.match.match_score}/100) · ${rf}${ginfo}`;
     }
 
-    // Si backend avisa de algo (descarga CSV, columnas, etc.)
     if(json.warning) showWarn(json.warning);
-    if(json.source) showWarn((warnBox.textContent ? warnBox.textContent + "\n" : "") + `Fuente: ${json.source}`);
+    if(json.source) showWarn((document.getElementById("warnBox").textContent ? document.getElementById("warnBox").textContent + "\n" : "") + `Fuente: ${json.source}`);
 
-    const cities = Array.isArray(json.ciudades) ? json.ciudades : [];
+    allCycleCities = Array.isArray(json.ciudades) ? json.ciudades : [];
 
-    if(!cities.length){
+    if(!allCycleCities.length){
       selCiudad.innerHTML = `<option value="">No hay ciudades para este ciclo</option>`;
-      showWarn((warnBox.textContent ? warnBox.textContent + "\n" : "") + "Si el ciclo tiene un nombre distinto al del CSV, luego lo afinamos.");
+      showWarn((document.getElementById("warnBox").textContent ? document.getElementById("warnBox").textContent + "\n" : "") + "No hay ciudades asociadas en el CSV para ese nombre. Si el ciclo viene distinto, lo afinamos.");
       return;
     }
 
-    selCiudad.innerHTML = `<option value="">Selecciona una ciudad...</option>` +
-      cities.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+    paintCitySelect(allCycleCities, "Selecciona una ciudad...");
+    showOk((document.getElementById("okBox").textContent ? document.getElementById("okBox").textContent + "\n" : "") + `Ciudades del ciclo: ${allCycleCities.length}`);
 
-    showWarn((warnBox.textContent ? warnBox.textContent + "\n" : "") + `Ciudades disponibles: ${cities.length}`);
   }catch(err){
     selCiudad.innerHTML = `<option value="">Error cargando ciudades</option>`;
     showErr(String(err));
   }
 }
 
-function getRadio(name){
-  const el = document.querySelector(`input[name="${name}"]:checked`);
-  return el ? el.value : "";
+function paintCitySelect(cityList, firstLabel){
+  const list = cityList || [];
+  selCiudad.innerHTML =
+    `<option value="">${escapeHtml(firstLabel || "Selecciona una ciudad...")}</option>` +
+    list.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
 }
 
+/* ===== Filtrado por distancia ===== */
+async function applyDistanceFilter(){
+  showErr("");
+  const origen = origenInput.value.trim();
+  const km = parseInt(kmInput.value, 10) || 20;
+  kmLabel.textContent = km + " km";
+
+  if(!origen){
+    paintCitySelect(allCycleCities, "Selecciona una ciudad...");
+    showOk(`Ciudades del ciclo (sin filtrar): ${allCycleCities.length}`);
+    return;
+  }
+
+  // Validar que el origen sea uno de los municipios del datalist
+  const dl = document.getElementById("listaMunicipios");
+  const opts = Array.from(dl.options).map(o => o.value.toLowerCase());
+  if(!opts.includes(origen.toLowerCase())){
+    paintCitySelect(allCycleCities, "Selecciona una ciudad...");
+    showWarn("Elige un municipio de la lista (autocompletar), para poder calcular distancias.");
+    return;
+  }
+
+  showOk("Calculando distancias… (la primera vez puede tardar un poco)");
+
+  const geoOrigen = await geocodeMunicipioCV(origen);
+  if(!geoOrigen){
+    paintCitySelect(allCycleCities, "Selecciona una ciudad...");
+    showWarn("No he podido localizar ese municipio. Prueba a escribirlo exactamente como aparece en la lista.");
+    return;
+  }
+
+  const results = [];
+  for(const city of allCycleCities){
+    const g = await geocodeMunicipioCV(city);
+    if(!g) continue;
+    const d = haversineKm(geoOrigen, g);
+    results.push({ city, km: d });
+  }
+
+  filteredCycleCities = results
+    .filter(x => x.km <= km)
+    .sort((a,b) => a.km - b.km);
+
+  const onlyNames = filteredCycleCities.map(x => x.city);
+
+  if(!onlyNames.length){
+    paintCitySelect([], "No hay ciudades dentro del radio");
+    showWarn(`No hay ciudades del ciclo a ≤ ${km} km desde "${origen}". Prueba a subir el radio o cambiar el origen.`);
+    return;
+  }
+
+  paintCitySelect(onlyNames, `Selecciona una ciudad (≤ ${km} km)`);
+  showOk(`Filtradas: ${onlyNames.length} de ${allCycleCities.length} ciudades (radio ${km} km).`);
+}
+
+/* ===== Guardar (por ahora) ===== */
 function collect(){
   return {
     ciclo,
     grado,
     edad: document.getElementById("edad").value,
+    origen: origenInput.value.trim(),
+    radio_km: parseInt(kmInput.value, 10) || 20,
+    ciudad_estudio: selCiudad.value,
     mudanza: getRadio("mudanza"),
     vehiculo: getRadio("vehiculo"),
-    ciudad: selCiudad.value
+    distancia_km_estimada: (() => {
+      const chosen = selCiudad.value;
+      const item = filteredCycleCities.find(x => x.city === chosen);
+      return item ? Math.round(item.km * 10) / 10 : null;
+    })()
   };
 }
 
+/* ===== Eventos ===== */
 document.getElementById("btnVolver").addEventListener("click", () => {
   window.location.href = "cuestionario.html";
 });
 
 document.getElementById("btnGuardar").addEventListener("click", () => {
-  const data = collect();
-  debug.textContent = JSON.stringify(data, null, 2);
+  debug.textContent = JSON.stringify(collect(), null, 2);
 });
 
-loadCities();
+kmInput.addEventListener("input", () => {
+  kmLabel.textContent = kmInput.value + " km";
+});
+
+kmInput.addEventListener("change", async () => {
+  await applyDistanceFilter();
+});
+
+origenInput.addEventListener("change", async () => {
+  await applyDistanceFilter();
+});
+
+// Filtrar al escribir SOLO si coincide exacto con un municipio (para no geocodificar cada tecla)
+let typeTimer = null;
+origenInput.addEventListener("input", () => {
+  if(typeTimer) clearTimeout(typeTimer);
+  typeTimer = setTimeout(async () => {
+    const dl = document.getElementById("listaMunicipios");
+    const opts = Array.from(dl.options).map(o => o.value.toLowerCase());
+    if(opts.includes(origenInput.value.trim().toLowerCase())){
+      await applyDistanceFilter();
+    }
+  }, 300);
+});
+
+/* ===== Init ===== */
+loadMunicipiosCV();
+loadCycleCities();
 </script>
 
 </body>

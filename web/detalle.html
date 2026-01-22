@@ -3,7 +3,26 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Detalles de preferencia – Orientación FP (CV)</title>
+  <title>Mapa y radio – Orientación FP (CV)</title>
+
+  <!-- Leaflet (CDN) -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <!-- jsPDF (CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- html2canvas (CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <style>
     :root{
@@ -32,7 +51,7 @@
       background:linear-gradient(180deg,#f4f8ff,#eaf1ff);
       color:var(--text);
     }
-    .wrap{max-width:980px;margin:auto;padding:28px;}
+    .wrap{max-width:1050px;margin:auto;padding:28px;}
     .card{
       background:var(--card);
       border-radius:var(--radius);
@@ -51,14 +70,16 @@
     .backlink:hover{background:rgba(47,111,237,.08)}
     h1{margin:0 0 6px;font-size:24px;color:var(--primary-dark)}
     .desc{margin:0;color:var(--muted);font-weight:650;line-height:1.35}
+
+    .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
     .chip{
       display:inline-flex;gap:8px;align-items:center;
       background:var(--chip);
       border:1px solid var(--line);
       padding:8px 12px;border-radius:999px;
       font-weight:900;color:var(--muted);font-size:13px;
-      margin-top:12px;
     }
+
     .block{
       border:1px solid var(--line);
       background:var(--soft);
@@ -66,10 +87,12 @@
       padding:16px;
       margin-top:16px;
     }
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-    @media(max-width:820px){.row{grid-template-columns:1fr}}
+
+    .row{display:grid;grid-template-columns: 1fr 1fr;gap:12px;}
+    @media(max-width:980px){.row{grid-template-columns:1fr}}
+
     label{display:block;font-weight:900;margin-bottom:6px;color:#1b2b4a}
-    input[type="number"], input[type="text"], select{
+    input[type="text"], select{
       width:100%;
       padding:12px 12px;
       border-radius:12px;
@@ -105,29 +128,8 @@
     }
     input[type="range"]{width:100%}
 
-    .opt{
-      display:flex;align-items:center;gap:10px;
-      padding:10px 12px;
-      border:1px solid var(--line);
-      border-radius:12px;
-      background:#fff;
-      font-weight:800;
-      color:#1b2b4a;
-      margin-top:8px;
-    }
-    .nav{
-      display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:18px;
-    }
-    .btn{
-      border:0;border-radius:14px;
-      padding:12px 18px;font-size:15px;font-weight:950;cursor:pointer;
-    }
-    .btnPrimary{background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;}
-    .btnPrimary:hover{filter:brightness(.95)}
-    .btnGhost{background:rgba(47,111,237,.10);color:var(--primary-dark);}
-    .btnGhost:hover{background:rgba(47,111,237,.16)}
-
     .hint{margin:10px 0 0;color:var(--muted);font-weight:650;font-size:13px}
+
     .alert{
       margin-top:12px;
       padding:10px 12px;
@@ -143,19 +145,36 @@
     .alert.err{display:block;background:var(--errbg);color:var(--err);border-color: rgba(220,38,38,.25);}
     .alert.ok{display:block;background:var(--okbg);color:var(--ok);border-color: rgba(16,185,129,.22);}
 
-    pre{
-      background:#0b1a33;color:#e6eeff;
-      padding:18px;border-radius:14px;
-      overflow:auto;max-height:360px;font-size:13px;
-      margin-top:16px;
+    .mapWrap{
+      margin-top:12px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      overflow:hidden;
+      background:#fff;
     }
-    .tiny{
-      font-size:12px;
-      color:var(--muted);
-      font-weight:700;
-      margin-top:8px;
-      line-height:1.35;
+    #map{
+      width:100%;
+      height:420px;
     }
+
+    .nav{
+      display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:18px;
+    }
+    .btn{
+      border:0;border-radius:14px;
+      padding:12px 18px;font-size:15px;font-weight:950;cursor:pointer;
+    }
+    .btnPrimary{background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;}
+    .btnPrimary:hover{filter:brightness(.95)}
+    .btnGhost{background:rgba(47,111,237,.10);color:var(--primary-dark);}
+    .btnGhost:hover{background:rgba(47,111,237,.16)}
+
+    /* Debug oculto (lo necesitamos, pero no se ve) */
+    pre{ display:none; }
+
+    .tiny{font-size:12px;color:var(--muted);font-weight:700;margin-top:8px;line-height:1.35;}
+
+    @keyframes spin{ to{ transform: rotate(360deg); } }
   </style>
 </head>
 
@@ -167,19 +186,16 @@
   </div>
 
   <div class="card">
-    <h1>Preferencias para esta opción</h1>
-    <p class="desc">Vamos a filtrar las ciudades del ciclo por distancia y tus condiciones.</p>
+    <h1>Mapa y radio (Comunitat Valenciana)</h1>
+    <p class="desc">Selecciona dónde vives y un radio en km. Verás en el mapa las poblaciones del ciclo que cumplen el criterio.</p>
 
-    <div class="chip" id="chipCiclo">Ciclo: —</div>
-    <div class="chip" id="chipGrado">Grado: —</div>
+    <div class="chips">
+      <div class="chip" id="chipCiclo">Ciclo: —</div>
+      <div class="chip" id="chipGrado">Grado: —</div>
+    </div>
 
     <div class="block">
       <div class="row">
-        <div>
-          <label for="edad">Edad</label>
-          <input id="edad" type="number" min="10" max="99" placeholder="Ej. 16">
-        </div>
-
         <div>
           <label for="origen">¿Dónde vives (o vas a vivir)?</label>
           <input id="origen" type="text" list="listaMunicipios" placeholder="Escribe y elige un municipio de la CV…">
@@ -191,50 +207,86 @@
               <div class="sliderVal" id="kmLabel">20 km</div>
             </div>
             <input id="km" type="range" min="1" max="50" value="20">
-            <div class="tiny">Se mostrarán solo las ciudades del ciclo dentro del radio.</div>
+            <div class="tiny">El mapa dibuja el círculo y marca las poblaciones del ciclo dentro del radio.</div>
           </div>
-        </div>
-      </div>
 
-      <div style="height:12px"></div>
+          <div style="height:12px"></div>
 
-      <div class="row">
-        <div>
-          <label for="ciudad">Ciudad donde estudiar (filtrada por radio)</label>
+          <label for="ciudad">Ciudades del ciclo dentro del radio</label>
           <select id="ciudad">
             <option value="">Cargando ciudades...</option>
           </select>
           <div class="hint" id="hintCiudades"></div>
+
           <div class="alert warn" id="warnBox"></div>
           <div class="alert err" id="errBox"></div>
           <div class="alert ok" id="okBox"></div>
         </div>
 
         <div>
-          <label>¿Estarías dispuesto/a a mudarte?</label>
-          <div class="opt"><input type="radio" name="mudanza" value="Sí" id="mud_si"><label for="mud_si" style="margin:0;font-weight:900">Sí</label></div>
-          <div class="opt"><input type="radio" name="mudanza" value="No" id="mud_no"><label for="mud_no" style="margin:0;font-weight:900">No</label></div>
-
-          <div style="height:10px"></div>
-
-          <label>¿Tienes vehículo para desplazarte?</label>
-          <div class="opt"><input type="radio" name="vehiculo" value="Sí" id="veh_si"><label for="veh_si" style="margin:0;font-weight:900">Sí</label></div>
-          <div class="opt"><input type="radio" name="vehiculo" value="No" id="veh_no"><label for="veh_no" style="margin:0;font-weight:900">No</label></div>
+          <label>Mapa (punto + radio + poblaciones)</label>
+          <div class="mapWrap">
+            <div id="map"></div>
+          </div>
+          <div class="tiny">
+            🏠 Tu municipio = marcador azul. <br>
+            📍 Poblaciones del ciclo dentro del radio = marcadores “con dibujito”.
+          </div>
         </div>
       </div>
 
       <div class="nav">
         <button class="btn btnGhost" id="btnVolver" type="button">Volver</button>
-        <button class="btn btnPrimary" id="btnGuardar" type="button">Guardar (por ahora)</button>
+        <button class="btn btnPrimary" id="btnGuardar" type="button">Guardar (PDF)</button>
       </div>
 
+      <!-- Debug oculto -->
       <pre id="debug">{ }</pre>
     </div>
   </div>
+</div>
 
+<!-- Loading overlay -->
+<div id="loadingOverlay" style="
+  position:fixed;
+  inset:0;
+  background:rgba(244,248,255,.85);
+  backdrop-filter: blur(2px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+">
+  <div style="
+    background:#fff;
+    border-radius:18px;
+    padding:26px 30px;
+    box-shadow:0 20px 50px rgba(30,70,160,.18);
+    text-align:center;
+    max-width:360px;
+  ">
+    <div style="
+      width:46px;height:46px;
+      border-radius:50%;
+      border:4px solid #dbe7ff;
+      border-top-color:#2f6fed;
+      margin:0 auto 14px;
+      animation:spin 1s linear infinite;
+    "></div>
+
+    <div style="font-weight:900;color:#1e55c9;font-size:15px">
+      Buscando ciudades
+    </div>
+    <div style="margin-top:6px;color:#4b5a77;font-weight:700;font-size:13px" id="loadingMsg">
+      Analizando criterios y distancia…
+    </div>
+  </div>
 </div>
 
 <script>
+/* =========================
+   Helpers
+========================= */
 function qs(name){
   const u = new URL(window.location.href);
   return u.searchParams.get(name) || "";
@@ -262,10 +314,6 @@ function showOk(msg){
   el.textContent = msg || "";
   el.className = msg ? "alert ok" : "alert";
 }
-function getRadio(name){
-  const el = document.querySelector(`input[name="${name}"]:checked`);
-  return el ? el.value : "";
-}
 function haversineKm(a, b){
   const R = 6371;
   const toRad = d => d * Math.PI / 180;
@@ -277,56 +325,121 @@ function haversineKm(a, b){
   const s = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
   return 2 * R * Math.asin(Math.sqrt(s));
 }
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
 
-/* ===== Estado ===== */
+/* =========================
+   Loading overlay (bloquea todo)
+========================= */
+function setLoading(state, msg){
+  const overlay = document.getElementById("loadingOverlay");
+  const msgEl = document.getElementById("loadingMsg");
+  if(msgEl && msg) msgEl.textContent = msg;
+
+  overlay.style.display = state ? "flex" : "none";
+
+  document.querySelectorAll("input, select, button").forEach(el => {
+    el.disabled = state;
+  });
+
+  if(state){
+    map.dragging.disable();
+    map.scrollWheelZoom.disable();
+    map.doubleClickZoom.disable();
+    map.boxZoom.disable();
+    map.keyboard.disable();
+    if(map.tap) map.tap.disable();
+    document.getElementById("map").style.pointerEvents = "none";
+  }else{
+    map.dragging.enable();
+    map.scrollWheelZoom.enable();
+    map.doubleClickZoom.enable();
+    map.boxZoom.enable();
+    map.keyboard.enable();
+    if(map.tap) map.tap.enable();
+    document.getElementById("map").style.pointerEvents = "auto";
+
+    // 🔥 FIX Leaflet típico: al volver del overlay, recalcula el tamaño
+    setTimeout(() => map.invalidateSize(), 50);
+  }
+}
+
+/* =========================
+   Estado
+========================= */
 const ciclo = qs("ciclo");
 const grado = qs("grado");
 
 document.getElementById("chipCiclo").innerHTML = "Ciclo: <b>" + escapeHtml(ciclo || "—") + "</b>";
 document.getElementById("chipGrado").innerHTML = "Grado: <b>" + escapeHtml(grado || "—") + "</b>";
 
+const origenInput = document.getElementById("origen");
+const kmInput = document.getElementById("km");
+const kmLabel = document.getElementById("kmLabel");
 const selCiudad = document.getElementById("ciudad");
 const hint = document.getElementById("hintCiudades");
 const debug = document.getElementById("debug");
 
-const origenInput = document.getElementById("origen");
-const kmInput = document.getElementById("km");
-const kmLabel = document.getElementById("kmLabel");
-
 kmLabel.textContent = kmInput.value + " km";
 
+let municipiosCV = [];
 let allCycleCities = [];
 let filteredCycleCities = [];
+let _typeTimer = null;
 
-/* ===== Autocomplete de municipios (TODA la CV) ===== */
-async function loadMunicipiosCV(){
-  const dl = document.getElementById("listaMunicipios");
-  dl.innerHTML = "";
-  try{
-    const res = await fetch("http://127.0.0.1:8000/api/municipios");
-    const json = await res.json();
+/* =========================
+   Leaflet map
+========================= */
+const map = L.map("map", { zoomControl: true });
+map.setView([39.47, -0.38], 8);
 
-    if(!json.ok || !Array.isArray(json.municipios)){
-      showWarn("No se pudieron cargar los municipios completos. Revisa /api/municipios.");
-      return;
-    }
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19,
+  attribution: '&copy; OpenStreetMap'
+}).addTo(map);
 
-    json.municipios.forEach(m => {
-      const opt = document.createElement("option");
-      opt.value = m;
-      dl.appendChild(opt);
-    });
+let originMarker = null;
+let radiusCircle = null;
+let townsLayer = L.layerGroup().addTo(map);
 
-    showOk(`Municipios cargados: ${json.municipios.length}`);
-  }catch(err){
-    showWarn("No se pudieron cargar los municipios completos (backend no disponible).");
-  }
-}
+// ✅ Nuevo: para poder saltar al marcador por nombre
+let townMarkersByCity = new Map();
 
-/* ===== Geocoding (Nominatim) con caché ===== */
-function cacheKey(place){
-  return "geo_cv_" + place.toLowerCase().trim();
-}
+const townIcon = L.divIcon({
+  className: "",
+  html: `
+    <div style="
+      width:28px;height:28px;border-radius:999px;
+      background:rgba(124,58,237,.14);
+      border:2px solid rgba(124,58,237,.55);
+      display:flex;align-items:center;justify-content:center;
+      font-size:16px; font-weight:900;
+      box-shadow:0 6px 18px rgba(30,70,160,.18);
+    ">📍</div>
+  `,
+  iconSize: [28, 28],
+  iconAnchor: [14, 14]
+});
+
+const originIcon = L.divIcon({
+  className: "",
+  html: `
+    <div style="
+      width:30px;height:30px;border-radius:999px;
+      background:rgba(47,111,237,.16);
+      border:2px solid rgba(47,111,237,.70);
+      display:flex;align-items:center;justify-content:center;
+      font-size:16px; font-weight:900;
+      box-shadow:0 6px 18px rgba(30,70,160,.18);
+    ">🏠</div>
+  `,
+  iconSize: [30, 30],
+  iconAnchor: [15, 15]
+});
+
+/* =========================
+   Geocoding + cache
+========================= */
+function cacheKey(place){ return "geo_cv_" + place.toLowerCase().trim(); }
 function getCachedGeo(place){
   try{
     const raw = localStorage.getItem(cacheKey(place));
@@ -337,9 +450,7 @@ function getCachedGeo(place){
   return null;
 }
 function setCachedGeo(place, geo){
-  try{
-    localStorage.setItem(cacheKey(place), JSON.stringify(geo));
-  }catch(_){}
+  try{ localStorage.setItem(cacheKey(place), JSON.stringify(geo)); }catch(_){}
 }
 async function geocodeMunicipioCV(place){
   const p = (place || "").trim();
@@ -351,7 +462,7 @@ async function geocodeMunicipioCV(place){
   const q = encodeURIComponent(`${p}, Comunitat Valenciana, España`);
   const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`;
 
-  await new Promise(r => setTimeout(r, 300));
+  await sleep(250);
 
   const res = await fetch(url, { headers: { "Accept":"application/json" } });
   if(!res.ok) return null;
@@ -368,12 +479,40 @@ async function geocodeMunicipioCV(place){
   return geo;
 }
 
-/* ===== Cargar ciudades del ciclo ===== */
+/* =========================
+   Backend data
+========================= */
+async function loadMunicipiosCV(){
+  showWarn(""); showErr(""); showOk("");
+  const dl = document.getElementById("listaMunicipios");
+  dl.innerHTML = "";
+
+  try{
+    const res = await fetch("http://127.0.0.1:8000/api/municipios");
+    const json = await res.json();
+
+    if(!json.ok || !Array.isArray(json.municipios)){
+      showWarn("No se pudieron cargar los municipios completos. Revisa /api/municipios.");
+      return;
+    }
+
+    municipiosCV = json.municipios.slice();
+    municipiosCV.forEach(m => {
+      const opt = document.createElement("option");
+      opt.value = m;
+      dl.appendChild(opt);
+    });
+
+    showOk(`Municipios cargados: ${municipiosCV.length}`);
+  }catch(err){
+    showWarn("No se pudieron cargar municipios (backend no disponible).");
+  }
+}
+
 async function loadCycleCities(){
   selCiudad.innerHTML = `<option value="">Cargando ciudades...</option>`;
   hint.textContent = "";
-  showWarn("");
-  showErr("");
+  showWarn(""); showErr("");
 
   try{
     const url = `http://127.0.0.1:8000/api/ciudades?ciclo=${encodeURIComponent(ciclo)}&grado=${encodeURIComponent(grado)}`;
@@ -386,7 +525,6 @@ async function loadCycleCities(){
       return;
     }
 
-    // Debug del “match”
     if(json.match && json.match.matched_ciclo){
       const rf = (json.match.rapidfuzz ? "RapidFuzz" : "Difflib");
       const ginfo = json.match.matched_grado ? ` · grado CSV: ${json.match.matched_grado} (${json.match.grado_score}/100)` : "";
@@ -400,7 +538,7 @@ async function loadCycleCities(){
 
     if(!allCycleCities.length){
       selCiudad.innerHTML = `<option value="">No hay ciudades para este ciclo</option>`;
-      showWarn((document.getElementById("warnBox").textContent ? document.getElementById("warnBox").textContent + "\n" : "") + "No hay ciudades asociadas en el CSV para ese nombre. Si el ciclo viene distinto, lo afinamos.");
+      showWarn((document.getElementById("warnBox").textContent ? document.getElementById("warnBox").textContent + "\n" : "") + "No hay ciudades asociadas en el CSV para ese nombre.");
       return;
     }
 
@@ -420,7 +558,55 @@ function paintCitySelect(cityList, firstLabel){
     list.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
 }
 
-/* ===== Filtrado por distancia ===== */
+/* =========================
+   Map drawing
+========================= */
+function clearTownMarkers(){
+  townsLayer.clearLayers();
+  townMarkersByCity = new Map();
+}
+
+function drawOriginAndRadius(geoOrigin){
+  const km = parseInt(kmInput.value, 10) || 20;
+  const meters = km * 1000;
+
+  if(originMarker) map.removeLayer(originMarker);
+  originMarker = L.marker([geoOrigin.lat, geoOrigin.lon], { icon: originIcon }).addTo(map);
+  originMarker.bindPopup(`<b>Tu municipio</b><br>${escapeHtml(origenInput.value.trim())}`);
+
+  if(radiusCircle) map.removeLayer(radiusCircle);
+  radiusCircle = L.circle([geoOrigin.lat, geoOrigin.lon], {
+    radius: meters,
+    color: "#2f6fed",
+    weight: 2,
+    fillColor: "#2f6fed",
+    fillOpacity: 0.12
+  }).addTo(map);
+
+  map.fitBounds(radiusCircle.getBounds(), { padding: [18,18] });
+}
+
+function drawTownMarkers(){
+  clearTownMarkers();
+
+  filteredCycleCities.forEach((t) => {
+    const marker = L.marker([t.geo.lat, t.geo.lon], { icon: townIcon }).addTo(townsLayer);
+    townMarkersByCity.set(t.city, marker);
+
+    const kmText = (Math.round(t.km * 10) / 10) + " km";
+    marker.bindPopup(`<b>${escapeHtml(t.city)}</b><br><span style="font-weight:800;color:#4b5a77">Dentro del radio · ${kmText}</span>`);
+  });
+}
+
+/* =========================
+   Filtering
+========================= */
+function isValidMunicipioCV(name){
+  const v = (name || "").trim().toLowerCase();
+  if(!v) return false;
+  return municipiosCV.some(m => m.toLowerCase() === v);
+}
+
 async function applyDistanceFilter(){
   showErr("");
   const origen = origenInput.value.trim();
@@ -429,78 +615,274 @@ async function applyDistanceFilter(){
 
   if(!origen){
     paintCitySelect(allCycleCities, "Selecciona una ciudad...");
+    clearTownMarkers();
+    if(originMarker) { map.removeLayer(originMarker); originMarker = null; }
+    if(radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
     showOk(`Ciudades del ciclo (sin filtrar): ${allCycleCities.length}`);
     return;
   }
 
-  // Validar que el origen sea uno de los municipios del datalist
-  const dl = document.getElementById("listaMunicipios");
-  const opts = Array.from(dl.options).map(o => o.value.toLowerCase());
-  if(!opts.includes(origen.toLowerCase())){
+  if(!isValidMunicipioCV(origen)){
     paintCitySelect(allCycleCities, "Selecciona una ciudad...");
-    showWarn("Elige un municipio de la lista (autocompletar), para poder calcular distancias.");
+    clearTownMarkers();
+    showWarn("Elige un municipio de la lista (autocompletar) para poder calcular distancias.");
     return;
   }
 
-  showOk("Calculando distancias… (la primera vez puede tardar un poco)");
+  setLoading(true, "Buscando ciudades dentro de los criterios…");
 
-  const geoOrigen = await geocodeMunicipioCV(origen);
-  if(!geoOrigen){
-    paintCitySelect(allCycleCities, "Selecciona una ciudad...");
-    showWarn("No he podido localizar ese municipio. Prueba a escribirlo exactamente como aparece en la lista.");
-    return;
+  try{
+    showOk("Buscando ciudades dentro de los criterios…");
+
+    const geoOrigen = await geocodeMunicipioCV(origen);
+    if(!geoOrigen){
+      paintCitySelect(allCycleCities, "Selecciona una ciudad...");
+      clearTownMarkers();
+      showWarn("No he podido localizar ese municipio. Prueba a seleccionarlo exactamente desde la lista.");
+      return;
+    }
+
+    drawOriginAndRadius(geoOrigen);
+
+    const results = [];
+    let processed = 0;
+
+    for(const city of allCycleCities){
+      const g = await geocodeMunicipioCV(city);
+      processed++;
+      if(processed % 4 === 0){
+        setLoading(true, `Buscando ciudades… (${processed}/${allCycleCities.length})`);
+      }
+      if(!g) continue;
+
+      const d = haversineKm(geoOrigen, g);
+      if(d <= km){
+        results.push({ city, km: d, geo: g });
+      }
+    }
+
+    filteredCycleCities = results.sort((a,b) => a.km - b.km);
+    const onlyNames = filteredCycleCities.map(x => x.city);
+
+    if(!onlyNames.length){
+      paintCitySelect([], "No hay ciudades dentro del radio");
+      clearTownMarkers();
+      showWarn(`No hay ciudades del ciclo a ≤ ${km} km desde "${origen}". Sube el radio o cambia el origen.`);
+      return;
+    }
+
+    paintCitySelect(onlyNames, `Selecciona una ciudad (≤ ${km} km)`);
+    drawTownMarkers();
+    showOk(`Encontradas ${onlyNames.length} ciudades dentro del radio.`);
+
   }
-
-  const results = [];
-  for(const city of allCycleCities){
-    const g = await geocodeMunicipioCV(city);
-    if(!g) continue;
-    const d = haversineKm(geoOrigen, g);
-    results.push({ city, km: d });
+  finally{
+    setLoading(false);
   }
-
-  filteredCycleCities = results
-    .filter(x => x.km <= km)
-    .sort((a,b) => a.km - b.km);
-
-  const onlyNames = filteredCycleCities.map(x => x.city);
-
-  if(!onlyNames.length){
-    paintCitySelect([], "No hay ciudades dentro del radio");
-    showWarn(`No hay ciudades del ciclo a ≤ ${km} km desde "${origen}". Prueba a subir el radio o cambiar el origen.`);
-    return;
-  }
-
-  paintCitySelect(onlyNames, `Selecciona una ciudad (≤ ${km} km)`);
-  showOk(`Filtradas: ${onlyNames.length} de ${allCycleCities.length} ciudades (radio ${km} km).`);
 }
 
-/* ===== Guardar (por ahora) ===== */
+/* =========================
+   PDF (con mapa sin deformar)
+========================= */
+function safeFilename(s){
+  return (s || "documento")
+    .toLowerCase()
+    .replaceAll("á","a").replaceAll("é","e").replaceAll("í","i").replaceAll("ó","o").replaceAll("ú","u").replaceAll("ñ","n")
+    .replaceAll(/[^a-z0-9]+/g,"-")
+    .replaceAll(/^-+|-+$/g,"")
+    .slice(0,80);
+}
+
 function collect(){
+  const chosen = selCiudad.value;
+  const item = filteredCycleCities.find(x => x.city === chosen);
+
   return {
     ciclo,
     grado,
-    edad: document.getElementById("edad").value,
     origen: origenInput.value.trim(),
     radio_km: parseInt(kmInput.value, 10) || 20,
-    ciudad_estudio: selCiudad.value,
-    mudanza: getRadio("mudanza"),
-    vehiculo: getRadio("vehiculo"),
-    distancia_km_estimada: (() => {
-      const chosen = selCiudad.value;
-      const item = filteredCycleCities.find(x => x.city === chosen);
-      return item ? Math.round(item.km * 10) / 10 : null;
-    })()
+    ciudad_estudio: chosen,
+    distancia_km_estimada: item ? Math.round(item.km * 10) / 10 : null,
+    ciudades_en_radio: filteredCycleCities.map(x => ({
+      ciudad: x.city,
+      distancia_km: Math.round(x.km * 10) / 10
+    }))
   };
 }
 
-/* ===== Eventos ===== */
+function waitLeafletIdle(timeoutMs = 2500){
+  return new Promise((resolve) => {
+    let done = false;
+
+    const finish = () => {
+      if (done) return;
+      done = true;
+      map.off("idle", onIdle);
+      resolve();
+    };
+
+    const onIdle = () => finish();
+
+    map.on("idle", onIdle);
+
+    setTimeout(finish, timeoutMs);
+    map.invalidateSize();
+  });
+}
+
+async function captureMapImage(){
+  await waitLeafletIdle(2500);
+  await sleep(150);
+
+  const mapEl = document.getElementById("map");
+
+  const canvas = await html2canvas(mapEl, {
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: "#ffffff",
+    scale: 2
+  });
+
+  return {
+    dataUrl: canvas.toDataURL("image/png"),
+    w: canvas.width,
+    h: canvas.height
+  };
+}
+
+async function generatePdf(){
+  const data = collect();
+
+  if(!data.origen){
+    alert("Primero selecciona dónde vives.");
+    return;
+  }
+  if(!data.ciudades_en_radio || !data.ciudades_en_radio.length){
+    alert("Todavía no hay ciudades filtradas dentro del radio. Elige un origen y ajusta el radio.");
+    return;
+  }
+
+  setLoading(true, "Generando PDF con el mapa…");
+
+  try{
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+
+    const margin = 14;
+    const pageW = 210;
+    const pageH = 297;
+    const usableW = pageW - margin*2;
+
+    let y = 16;
+
+    // Título
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("Informe de búsqueda por distancia (FP CV)", margin, y);
+    y += 8;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.setTextColor(60, 80, 120);
+
+    const now = new Date();
+    const fecha = now.toLocaleString("es-ES");
+
+    const lines = [
+      `Fecha: ${fecha}`,
+      `Ciclo: ${data.ciclo || "-"}`,
+      `Grado: ${data.grado || "-"}`,
+      `Origen: ${data.origen || "-"}`,
+      `Radio: ${data.radio_km} km`,
+    ];
+    doc.text(lines, margin, y);
+    y += (lines.length * 5) + 4;
+
+    // Lista de ciudades
+    doc.setTextColor(11, 26, 51);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("Poblaciones dentro del radio", margin, y);
+    y += 6;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+
+    const list = data.ciudades_en_radio.map((c, idx) => {
+      const d = (typeof c.distancia_km === "number") ? ` (${c.distancia_km} km)` : "";
+      return `${idx+1}. ${c.ciudad}${d}`;
+    });
+
+    const joined = list.join("\n");
+    const wrapped = doc.splitTextToSize(joined, usableW);
+
+    const lineH = 5;
+    for(const line of wrapped){
+      if(y > pageH - margin - 10){
+        doc.addPage();
+        y = 16;
+      }
+      doc.text(line, margin, y);
+      y += lineH;
+    }
+    y += 4;
+
+    // Mapa
+    if(y > pageH - margin - 110){
+      doc.addPage();
+      y = 16;
+    }
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("Mapa (captura)", margin, y);
+    y += 6;
+
+    const shot = await captureMapImage();
+
+    const imgW = usableW;
+    const imgH = imgW * (shot.h / shot.w);
+
+    if(y + imgH > pageH - margin){
+      doc.addPage();
+      y = 16;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text("Mapa (captura)", margin, y);
+      y += 6;
+    }
+
+    doc.addImage(shot.dataUrl, "PNG", margin, y, imgW, imgH);
+    y += imgH + 6;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(90, 110, 150);
+    doc.text("Nota: distancias calculadas en línea recta (haversine).", margin, y);
+
+    const fname = `informe_${safeFilename(data.origen)}_${safeFilename(data.ciclo)}_${data.radio_km}km.pdf`;
+    doc.save(fname);
+
+    debug.textContent = JSON.stringify(data, null, 2);
+  }
+  catch(err){
+    alert("Error generando PDF: " + err);
+  }
+  finally{
+    setLoading(false);
+  }
+}
+
+/* =========================
+   Events
+========================= */
 document.getElementById("btnVolver").addEventListener("click", () => {
   window.location.href = "cuestionario.html";
 });
 
-document.getElementById("btnGuardar").addEventListener("click", () => {
-  debug.textContent = JSON.stringify(collect(), null, 2);
+document.getElementById("btnGuardar").addEventListener("click", async () => {
+  await generatePdf();
 });
 
 kmInput.addEventListener("input", () => {
@@ -515,22 +897,42 @@ origenInput.addEventListener("change", async () => {
   await applyDistanceFilter();
 });
 
-// Filtrar al escribir SOLO si coincide exacto con un municipio (para no geocodificar cada tecla)
-let typeTimer = null;
 origenInput.addEventListener("input", () => {
-  if(typeTimer) clearTimeout(typeTimer);
-  typeTimer = setTimeout(async () => {
-    const dl = document.getElementById("listaMunicipios");
-    const opts = Array.from(dl.options).map(o => o.value.toLowerCase());
-    if(opts.includes(origenInput.value.trim().toLowerCase())){
+  if(_typeTimer) clearTimeout(_typeTimer);
+  _typeTimer = setTimeout(async () => {
+    if(isValidMunicipioCV(origenInput.value.trim())){
       await applyDistanceFilter();
     }
-  }, 300);
+  }, 250);
 });
 
-/* ===== Init ===== */
-loadMunicipiosCV();
-loadCycleCities();
+// ✅ FIX principal: al seleccionar ciudad -> flyTo + popup
+selCiudad.addEventListener("change", () => {
+  const chosen = selCiudad.value;
+  if(!chosen) return;
+
+  const marker = townMarkersByCity.get(chosen);
+  if(!marker) return;
+
+  const ll = marker.getLatLng();
+
+  // zoom “bonito”: si estás muy lejos, te acerca; si ya estás cerca, no te rompe el zoom
+  const targetZoom = Math.max(map.getZoom(), 11);
+
+  map.flyTo(ll, targetZoom, { animate: true, duration: 0.8 });
+
+  setTimeout(() => {
+    marker.openPopup();
+  }, 250);
+});
+
+/* =========================
+   Init
+========================= */
+(async function init(){
+  await loadMunicipiosCV();
+  await loadCycleCities();
+})();
 </script>
 
 </body>

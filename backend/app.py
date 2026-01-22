@@ -4,7 +4,8 @@ import json
 import os
 import time
 import urllib.request
-from typing import Dict, List, Set, Tuple
+import threading
+from typing import Dict, List, Set, Tuple, Optional
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -34,6 +35,15 @@ GVA_FP_CSV_URL_2024 = os.getenv(
     "https://dadesobertes.gva.es/dataset/04b2a721-9256-40f9-b45e-fa0c8e7000b5/resource/7ac929a5-9138-4791-924b-2f1f4c6777fc/download/alumnos-matriculados-fp_2024.csv"
 )
 
+# ✅ NUEVO: CSV centros docentes (dirección/teléfono/web/coords)
+# Recurso oficial:
+# https://dadesobertes.gva.es/dataset/68eb1d94-76d3-4305-8507-e1aab7717d0e/resource/1aa53c3a-4639-41aa-ac85-d58254c428c0/download/centros-docentes-de-la-comunitat-valenciana.csv
+# (viene del dataset edu-centros) :contentReference[oaicite:2]{index=2}
+GVA_CENTROS_CSV_URL = os.getenv(
+    "GVA_CENTROS_CSV_URL",
+    "https://dadesobertes.gva.es/dataset/68eb1d94-76d3-4305-8507-e1aab7717d0e/resource/1aa53c3a-4639-41aa-ac85-d58254c428c0/download/centros-docentes-de-la-comunitat-valenciana.csv"
+)
+
 app = Flask(__name__)
 
 CORS(
@@ -48,7 +58,7 @@ CORS(
 bedrock = boto3.client("bedrock-runtime", region_name=AWS_REGION)
 
 # ----------------------------
-# Cache / índices
+# Cache / índices FP
 # ----------------------------
 _cycle_city_index: Dict[Tuple[str, str], Set[str]] = {}
 _cycle_anygrade_index: Dict[str, Set[str]] = {}
@@ -59,6 +69,7 @@ _last_index_source: str = ""
 _last_index_error: str = ""
 
 _INDEX_TTL_SECONDS = 24 * 3600  # refresca 1 vez al día
+_fp_index_lock = threading.Lock()
 
 
 def _norm(s: str) -> str:
@@ -210,7 +221,7 @@ def normalize_output(obj: dict) -> dict:
 
 
 # ----------------------------
-# CSV GVA (ciudades por ciclo + municipios CV)
+# CSV GVA FP (ciudades por ciclo + municipios CV)
 # ----------------------------
 def _download_csv(url: str) -> bytes:
     req = urllib.request.Request(
@@ -248,12 +259,6 @@ def _read_gva_csv_bytes() -> Tuple[bytes, str, str]:
 
 
 def _load_gva_fp_index(force: bool = False) -> None:
-    """
-    Construye:
-      - índice ciclo+grado -> municipios
-      - índice ciclo -> municipios
-      - listado municipios CV (únicos) para autocomplete
-    """
     global _cycle_city_index, _cycle_anygrade_index, _municipios_all
     global _last_index_load_ts, _last_index_source, _last_index_error
 
@@ -261,72 +266,75 @@ def _load_gva_fp_index(force: bool = False) -> None:
     if (not force) and _cycle_city_index and (now - _last_index_load_ts) < _INDEX_TTL_SECONDS:
         return
 
-    _last_index_error = ""
-    _last_index_source = ""
+    with _fp_index_lock:
+        now = time.time()
+        if (not force) and _cycle_city_index and (now - _last_index_load_ts) < _INDEX_TTL_SECONDS:
+            return
 
-    csv_bytes, source, err = _read_gva_csv_bytes()
-    if err:
-        _cycle_city_index = {}
-        _cycle_anygrade_index = {}
-        _municipios_all = []
-        _last_index_load_ts = now
+        _last_index_error = ""
         _last_index_source = ""
-        _last_index_error = err
-        return
 
-    # decode
-    try:
-        text = csv_bytes.decode("utf-8")
-    except UnicodeDecodeError:
-        text = csv_bytes.decode("latin-1")
+        csv_bytes, source, err = _read_gva_csv_bytes()
+        if err:
+            _cycle_city_index = {}
+            _cycle_anygrade_index = {}
+            _municipios_all = []
+            _last_index_load_ts = now
+            _last_index_source = ""
+            _last_index_error = err
+            return
 
-    f = io.StringIO(text)
+        try:
+            text = csv_bytes.decode("utf-8")
+        except UnicodeDecodeError:
+            text = csv_bytes.decode("latin-1")
 
-    # primero ';'
-    reader = csv.DictReader(f, delimiter=";")
-    if reader.fieldnames and len(reader.fieldnames) == 1 and "," in reader.fieldnames[0]:
-        f.seek(0)
-        reader = csv.DictReader(f, delimiter=",")
+        f = io.StringIO(text)
 
-    needed = {"NOM_CICLO", "NOM_MUN", "NOM_GRADO"}
-    fields = set(reader.fieldnames or [])
-    if not needed.issubset(fields):
-        _cycle_city_index = {}
-        _cycle_anygrade_index = {}
-        _municipios_all = []
+        reader = csv.DictReader(f, delimiter=";")
+        if reader.fieldnames and len(reader.fieldnames) == 1 and "," in reader.fieldnames[0]:
+            f.seek(0)
+            reader = csv.DictReader(f, delimiter=",")
+
+        needed = {"NOM_CICLO", "NOM_MUN", "NOM_GRADO"}
+        fields = set(reader.fieldnames or [])
+        if not needed.issubset(fields):
+            _cycle_city_index = {}
+            _cycle_anygrade_index = {}
+            _municipios_all = []
+            _last_index_load_ts = now
+            _last_index_source = source
+            _last_index_error = (
+                f"CSV descargado pero faltan columnas: {sorted(list(needed - fields))}. "
+                f"Columnas detectadas: {sorted(list(fields))[:30]}"
+            )
+            return
+
+        new_index: Dict[Tuple[str, str], Set[str]] = {}
+        new_anygrade: Dict[str, Set[str]] = {}
+        municipios_set: Set[str] = set()
+
+        for row in reader:
+            nom_ciclo = _norm(row.get("NOM_CICLO", ""))
+            nom_grado = _norm(row.get("NOM_GRADO", ""))
+            nom_mun_raw = (row.get("NOM_MUN", "") or "").strip()
+
+            if nom_mun_raw:
+                municipios_set.add(nom_mun_raw)
+
+            if not nom_ciclo or not nom_mun_raw:
+                continue
+
+            new_index.setdefault((nom_ciclo, nom_grado), set()).add(nom_mun_raw)
+            new_anygrade.setdefault(nom_ciclo, set()).add(nom_mun_raw)
+
+        _cycle_city_index = new_index
+        _cycle_anygrade_index = new_anygrade
+        _municipios_all = sorted(municipios_set)
+
         _last_index_load_ts = now
         _last_index_source = source
-        _last_index_error = (
-            f"CSV descargado pero faltan columnas: {sorted(list(needed - fields))}. "
-            f"Columnas detectadas: {sorted(list(fields))[:30]}"
-        )
-        return
-
-    new_index: Dict[Tuple[str, str], Set[str]] = {}
-    new_anygrade: Dict[str, Set[str]] = {}
-    municipios_set: Set[str] = set()
-
-    for row in reader:
-        nom_ciclo = _norm(row.get("NOM_CICLO", ""))
-        nom_grado = _norm(row.get("NOM_GRADO", ""))
-        nom_mun_raw = (row.get("NOM_MUN", "") or "").strip()
-
-        if nom_mun_raw:
-            municipios_set.add(nom_mun_raw)
-
-        if not nom_ciclo or not nom_mun_raw:
-            continue
-
-        new_index.setdefault((nom_ciclo, nom_grado), set()).add(nom_mun_raw)
-        new_anygrade.setdefault(nom_ciclo, set()).add(nom_mun_raw)
-
-    _cycle_city_index = new_index
-    _cycle_anygrade_index = new_anygrade
-    _municipios_all = sorted(municipios_set)
-
-    _last_index_load_ts = now
-    _last_index_source = source
-    _last_index_error = ""
+        _last_index_error = ""
 
 
 def _best_match_with_rapidfuzz(query: str, choices: List[str]) -> Tuple[str, int]:
@@ -382,7 +390,6 @@ def _find_cities_for_cycle(ciclo: str, grado: str) -> Tuple[List[str], dict]:
     if not _cycle_city_index and not _cycle_anygrade_index:
         return [], info
 
-    # 1) exacto ciclo+grado
     if ciclo_n and grado_n:
         exact = _cycle_city_index.get((ciclo_n, grado_n))
         if exact:
@@ -392,7 +399,6 @@ def _find_cities_for_cycle(ciclo: str, grado: str) -> Tuple[List[str], dict]:
             info["grado_score"] = 100
             return sorted(exact), info
 
-    # 2) exacto solo ciclo
     if ciclo_n:
         anyg = _cycle_anygrade_index.get(ciclo_n)
         if anyg:
@@ -400,7 +406,6 @@ def _find_cities_for_cycle(ciclo: str, grado: str) -> Tuple[List[str], dict]:
             info["match_score"] = 100
             return sorted(anyg), info
 
-    # 3) fuzzy ciclo
     matched_ciclo, score = _best_cycle_match(ciclo_n)
     info["matched_ciclo"] = matched_ciclo
     info["match_score"] = score
@@ -408,7 +413,6 @@ def _find_cities_for_cycle(ciclo: str, grado: str) -> Tuple[List[str], dict]:
     if not matched_ciclo or score < 55:
         return [], info
 
-    # 3a) fuzzy grado dentro del ciclo
     if grado_n:
         grados_posibles: List[str] = []
         for (c_name, g_name) in _cycle_city_index.keys():
@@ -425,9 +429,146 @@ def _find_cities_for_cycle(ciclo: str, grado: str) -> Tuple[List[str], dict]:
                 if cities:
                     return sorted(cities), info
 
-    # 3b) cualquier grado
     cities_any = _cycle_anygrade_index.get(matched_ciclo, set())
     return sorted(cities_any), info
+
+
+# ----------------------------
+# ✅ NUEVO: Índice de CENTROS (dirección/teléfono/web)
+# ----------------------------
+_centros_by_localidad: Dict[str, List[dict]] = {}
+_centros_last_load_ts: float = 0.0
+_centros_last_source: str = ""
+_centros_last_error: str = ""
+_CENTROS_TTL_SECONDS = 7 * 24 * 3600  # 7 días (sobra, el dataset se actualiza continuo)
+_centros_lock = threading.Lock()
+
+
+def _safe_float(x) -> Optional[float]:
+    try:
+        v = float(x)
+        if v != v:  # NaN
+            return None
+        return v
+    except Exception:
+        return None
+
+
+def _centro_fp_score(row: dict) -> int:
+    """
+    No siempre hay un campo 'imparte FP'. Así que ordenamos "probables FP" arriba
+    por heurística (CIPFP, FP, IES, etc.).
+    """
+    hay = " ".join(
+        [
+            str(row.get("denominacion_generica_es", "")),
+            str(row.get("denominacion_especifica", "")),
+            str(row.get("denominacion", "")),
+        ]
+    ).upper()
+
+    score = 0
+    if "CIPFP" in hay or "CENTRE INTEGRAT" in hay or "CENTRO INTEGRADO" in hay:
+        score += 50
+    if "FORMACIÓN PROFESIONAL" in hay or "FORMACION PROFESIONAL" in hay:
+        score += 35
+    if "FP" in hay:
+        score += 10
+    if "IES" in hay or "INSTITUTO" in hay:
+        score += 6
+    return score
+
+
+def _download_centros_csv() -> bytes:
+    return _download_csv(GVA_CENTROS_CSV_URL)
+
+
+def _load_centros_index(force: bool = False) -> None:
+    global _centros_by_localidad, _centros_last_load_ts, _centros_last_source, _centros_last_error
+
+    now = time.time()
+    if (not force) and _centros_by_localidad and (now - _centros_last_load_ts) < _CENTROS_TTL_SECONDS:
+        return
+
+    with _centros_lock:
+        now = time.time()
+        if (not force) and _centros_by_localidad and (now - _centros_last_load_ts) < _CENTROS_TTL_SECONDS:
+            return
+
+        _centros_last_error = ""
+        _centros_last_source = ""
+
+        try:
+            csv_bytes = _download_centros_csv()
+            _centros_last_source = GVA_CENTROS_CSV_URL
+        except Exception as e:
+            _centros_by_localidad = {}
+            _centros_last_load_ts = now
+            _centros_last_error = f"No se pudo descargar CSV centros. Error: {e}"
+            return
+
+        try:
+            text = csv_bytes.decode("utf-8")
+        except UnicodeDecodeError:
+            text = csv_bytes.decode("latin-1", errors="replace")
+
+        f = io.StringIO(text)
+        reader = csv.DictReader(f, delimiter=";")
+        if reader.fieldnames and len(reader.fieldnames) == 1 and "," in reader.fieldnames[0]:
+            f.seek(0)
+            reader = csv.DictReader(f, delimiter=",")
+
+        # Campos relevantes (según diccionario del recurso) :contentReference[oaicite:3]{index=3}
+        needed = {"denominacion", "direccion", "localidad"}
+        fields = set(reader.fieldnames or [])
+        if not needed.issubset(fields):
+            _centros_by_localidad = {}
+            _centros_last_load_ts = now
+            _centros_last_error = (
+                f"CSV centros descargado pero faltan columnas: {sorted(list(needed - fields))}. "
+                f"Columnas detectadas: {sorted(list(fields))[:30]}"
+            )
+            return
+
+        idx: Dict[str, List[dict]] = {}
+
+        for row in reader:
+            localidad_raw = (row.get("localidad", "") or "").strip()
+            if not localidad_raw:
+                continue
+
+            item = {
+                "codigo": row.get("codigo", ""),
+                "nombre": (row.get("denominacion", "") or "").strip(),
+                "tipo": (row.get("denominacion_generica_es", "") or "").strip(),
+                "regimen": (row.get("regimen", "") or "").strip(),
+                "direccion": (row.get("direccion", "") or "").strip(),
+                "numero": (row.get("numero", "") or "").strip(),
+                "cp": row.get("codigo_postal", ""),
+                "localidad": localidad_raw,
+                "provincia": (row.get("provincia", "") or "").strip(),
+                "telefono": str(row.get("telefono", "") or "").strip(),
+                "url": (row.get("url_es", "") or "").strip(),
+                "lat": _safe_float(row.get("latitud", None)),
+                "lon": _safe_float(row.get("longitud", None)),
+            }
+
+            # Limpieza rápida
+            if item["telefono"] in ("0", "0.0", "nan", "None"):
+                item["telefono"] = ""
+            if item["url"] in ("nan", "None"):
+                item["url"] = ""
+
+            key = _norm(localidad_raw)
+            idx.setdefault(key, []).append(item)
+
+        # Orden interno: probables FP primero, luego por nombre
+        for k, arr in idx.items():
+            arr.sort(key=lambda r: (-_centro_fp_score(r), (r.get("nombre") or "").lower()))
+
+        _centros_by_localidad = idx
+        _centros_last_load_ts = now
+        _centros_last_error = ""
 
 
 # ----------------------------
@@ -438,7 +579,14 @@ def root():
     return jsonify(
         {
             "mensaje": "Backend activo (Bedrock Nova).",
-            "endpoints": ["/health", "/api/orientacion", "/api/ciudades", "/api/ciudades/debug", "/api/municipios"],
+            "endpoints": [
+                "/health",
+                "/api/orientacion",
+                "/api/ciudades",
+                "/api/ciudades/debug",
+                "/api/municipios",
+                "/api/centros",
+            ],
         }
     )
 
@@ -515,10 +663,6 @@ def ciudades():
 
 @app.get("/api/municipios")
 def municipios():
-    """
-    Lista completa de municipios (NOM_MUN) del CSV GVA.
-    Cacheado para que el autocompletado vaya fino.
-    """
     try:
         _load_gva_fp_index(force=False)
 
@@ -551,6 +695,51 @@ def ciudades_debug():
             "rapidfuzz": RAPIDFUZZ_OK,
         }
     ), 200
+
+
+# ✅ NUEVO endpoint: centros por municipio
+@app.get("/api/centros")
+def centros():
+    municipio = request.args.get("municipio", "").strip()
+    limit = request.args.get("limit", "").strip()
+    only_fp = request.args.get("only_fp", "0").strip()  # "1" para filtrar “probables FP”
+
+    if not municipio:
+        return jsonify({"ok": False, "error": "Falta parámetro 'municipio'"}), 400
+
+    try:
+        _load_centros_index(force=False)
+
+        if _centros_last_error:
+            return jsonify({"ok": False, "error": _centros_last_error}), 500
+
+        key = _norm(municipio)
+        items = _centros_by_localidad.get(key, [])
+
+        # Si piden solo FP, filtramos por score mínimo
+        if only_fp == "1":
+            items = [x for x in items if _centro_fp_score(x) >= 10]
+
+        # limit
+        try:
+            lim = int(limit) if limit else 25
+        except Exception:
+            lim = 25
+        lim = max(1, min(lim, 100))
+
+        out = items[:lim]
+
+        return jsonify(
+            {
+                "ok": True,
+                "municipio": municipio,
+                "count": len(out),
+                "centros": out,
+                "source": _centros_last_source,
+            }
+        ), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
 if __name__ == "__main__":

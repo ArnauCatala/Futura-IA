@@ -291,6 +291,9 @@
     <h1 style="font-size:20px;margin:0 0 10px;color:var(--primary-dark)">JSON devuelto por la IA</h1>
     <pre id="output">{ }</pre>
   </div>
+  
+
+
 
 </div>
 
@@ -626,7 +629,7 @@ async function sendToAI(){
 
     wizardCard.classList.add("hide");
     resultCard.classList.remove("hide");
-    jsonCard.classList.remove("hide");
+   // jsonCard.classList.remove("hide");
     window.scrollTo({top:0, behavior:"smooth"});
   }catch(err){
     output.textContent = "Error al conectar con el backend: " + err;
